@@ -1,13 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import HomeScreen from '../components/Homepage/homepage';
 
 export default function Home() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to QuizWhiz</Text>
-      <Link href="/about" style={styles.link}>
-        <Text style={styles.linkText}>Go to About</Text>
-      </Link>
+      <HomeScreen/>
     </View>
   );
 }
