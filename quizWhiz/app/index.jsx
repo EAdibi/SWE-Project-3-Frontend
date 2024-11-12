@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import HomeScreen from '../components/Homepage/homepage';
 import Login from '../components/Login/login';
 
-export default function Home() {
+export default function Page() {
   return (
     <View>
       <Login/>
