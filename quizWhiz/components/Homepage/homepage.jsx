@@ -8,6 +8,7 @@ import {
   ScrollView, 
   Platform,
   Dimensions,
+  Modal,
   StatusBar as RNStatusBar
 } from 'react-native';
 import { 
@@ -19,11 +20,11 @@ import {
 } from 'lucide-react-native';
 
 const windowWidth = Dimensions.get('window').width;
-
 const STATUSBAR_HEIGHT = RNStatusBar.currentHeight || 0;
 
 const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalVisible, setModalVisible] = useState(false); //State to control dropdown visibility
 
   const recentStudySets = [
     { id: 1, title: 'JavaScript Basics', cards: 25, lastStudied: '2 days ago' },
@@ -38,6 +39,11 @@ const HomeScreen = () => {
     { id: 4, name: 'Programming', count: 800 }
   ];
 
+  // Toggle Dropdown modal visiblity
+  const toggleDropdown = () => {
+    setModalVisible(!modalVisible);
+  }
+
   return (
     <View style={styles.container}>
       <RNStatusBar 
@@ -49,16 +55,26 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={true}
       >
+
+        {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.appTitle}>QuizWhiz</Text>
+
+            {/* CREATE SET BUTTON */}
             <TouchableOpacity style={styles.createButton}>
               <Plus size={20} color="#FFFFFF" />
               <Text style={styles.createButtonText}>Create Set</Text>
             </TouchableOpacity>
+
+            {/* PROFILE PICTURE */}
+            <TouchableOpacity style={styles.profilePicture} onPress={toggleDropdown}>
+              <Text style={styles.profileInitials}>PH</Text> {/* Placeholder Initials, Add functionality */}
+            </TouchableOpacity>
           </View>
         </View>
 
+        {/* SEARCH BAR */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
             <TextInput
@@ -74,12 +90,14 @@ const HomeScreen = () => {
           </View>
         </View>
 
+        {/* STUDY SETS SECTION */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <BookOpen size={24} color="#2563EB" />
             <Text style={styles.sectionTitle}>Recent Study Sets</Text>
           </View>
           
+          {/* LIST OF RECENT STUDY SETS */}
           <View style={styles.studySetsGrid}>
             {recentStudySets.map(set => (
               <TouchableOpacity 
@@ -106,6 +124,7 @@ const HomeScreen = () => {
           </View>
         </View>
 
+        {/* POPULAR CATEGORIES SECTION */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Brain size={24} color="#2563EB" />
@@ -128,11 +147,66 @@ const HomeScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* DROPDOWN MODAL */}
+      <Modal
+        transparent={true}
+        visible={modalVisible}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity onPress={() => { /* NAVIGATE TO SETTINGS*/}}>
+              <Text style={styles.dropdownItem}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { /* HANDLE LOGOUT */}}>
+              <Text style={styles.dropdownItem}>Log out</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  profilePicture: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
+  profileInitials: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    padding: 20,
+  },
+  dropdownMenu: {
+    width: 150,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  dropdownItem: {
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
