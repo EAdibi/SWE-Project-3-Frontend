@@ -170,6 +170,8 @@ const Login = () => {
     },
     mobileLayout: {
       flex: 1,
+      justifyContent: "center",
+      alignContent: "center",
     },
     webLayout: {
       flex: 1,
@@ -289,14 +291,7 @@ const Login = () => {
   if (isMobile) {
     return (
       <View style={styles.mobileLayout}>
-        <View style={styles.formContainer}>{renderForm()}</View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require("../../assets/images/login.jpg")}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        </View>
+        <View>{renderForm()}</View>
       </View>
     );
   }
