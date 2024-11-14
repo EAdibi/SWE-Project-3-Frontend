@@ -12,7 +12,7 @@ import {
 import axiosInstance from "../../api/instance";
 import { useRouter } from "expo-router";
 
-const Login = () => {
+const SignUp = () => {
   const router = useRouter();
 
   const [firstName, setFirstName] = useState("");
@@ -264,12 +264,13 @@ const Login = () => {
     },
     mobileLayout: {
       flex: 1,
+      paddingTop: 0,
     },
     webLayout: {
       flex: 1,
       flexDirection: "row",
       minHeight: "100vh",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#f8fafc",
     },
     formContainer: {
       flex: 0.4,
@@ -282,7 +283,6 @@ const Login = () => {
       flex: 0.4,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "#ffffff",
     },
     formWrapper: {
       width: "100%",
@@ -291,10 +291,10 @@ const Login = () => {
       backgroundColor: "#ffffff",
       padding: 40,
       borderRadius: 24,
-      shadowColor: "#64748b",
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.04,
-      shadowRadius: 16,
+      boxShadowColor: "#64748b",
+      boxShadowOffset: { width: 0, height: 8 },
+      boxShadowOpacity: 0.04,
+      boxShadowRadius: 16,
       elevation: 4,
     },
     imageContainer: {
@@ -305,7 +305,7 @@ const Login = () => {
     image: {
       width: "100%",
       height: "100%",
-      opacity: 0.9,
+      opacity: 0.8,
     },
     title: {
       fontSize: 36,
@@ -345,10 +345,10 @@ const Login = () => {
       justifyContent: "center",
       alignItems: "center",
       marginTop: 32,
-      shadowColor: "#3b82f6",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
+      boxShadowColor: "#3b82f6",
+      boxShadowOffset: { width: 0, height: 4 },
+      boxShadowOpacity: 0.2,
+      boxShadowRadius: 8,
       elevation: 4,
     },
     buttonText: {
@@ -372,14 +372,7 @@ const Login = () => {
   if (isMobile) {
     return (
       <View style={styles.mobileLayout}>
-        <View style={styles.formContainer}>{renderForm()}</View>
-        <View style={styles.imageContainer}>
-          <Image
-            source={require("../../assets/images/login.jpg")}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        </View>
+        <View>{renderForm()}</View>
       </View>
     );
   }
@@ -398,4 +391,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;
