@@ -11,6 +11,7 @@ env:
   GAR_LOCATION: us-central1
   REPOSITORY: quizwhiz-app
   IMAGE: quizwhiz-image
+  WORKING_DIR: ./quizWhiz # Adjust this to match your exact directory name
 
 jobs:
   build-and-deploy:
@@ -24,13 +25,12 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Enter project directory
-      run: cd quizWhiz
-        
     - name: Install dependencies
+      working-directory: ${{ env.WORKING_DIR }}
       run: npm install
       
     - name: Build
+      working-directory: ${{ env.WORKING_DIR }}
       run: npm run build
       
     - name: Set up Cloud SDK
@@ -43,6 +43,7 @@ jobs:
       run: gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev
       
     - name: Build Docker image
+      working-directory: ${{ env.WORKING_DIR }}
       run: docker build -t $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA .
       
     - name: Push Docker image
