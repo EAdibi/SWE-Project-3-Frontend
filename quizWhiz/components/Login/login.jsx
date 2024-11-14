@@ -150,7 +150,7 @@ const Login = () => {
           onPress={handleSignUp}
           disabled={isLoading}
         >
-          <Text style={styles.textField}>Create Your Account</Text>
+          <Text style={styles.signUptextField}>Create Your Account</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -172,6 +172,8 @@ const Login = () => {
       flex: 1,
       justifyContent: "center",
       alignContent: "center",
+      paddingTop: 170,
+      paddingLeft: 6
     },
     webLayout: {
       flex: 1,
@@ -186,15 +188,14 @@ const Login = () => {
       backgroundColor: "#ffffff",
       borderRadius: 16,
       margin: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
+      boxShadowColor: "#000",
+      boxShadowOffset: { width: 0, height: 2 },
+      boxShadowOpacity: 0.1,
+      boxShadowRadius: 8,
       elevation: 4,
     },
     webFormContainer: {
       flex: 0.4,
-      padding: 48,
       justifyContent: "center",
       alignItems: "center",
     },
@@ -204,10 +205,10 @@ const Login = () => {
       backgroundColor: "#ffffff",
       padding: 32,
       borderRadius: 16,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
+      boxShadowColor: "#000",
+      boxShadowOffset: { width: 0, height: 2 },
+      boxShadowOpacity: 0.1,
+      boxShadowRadius: 8,
       elevation: 4,
     },
     imageContainer: {
@@ -221,11 +222,12 @@ const Login = () => {
       opacity: 0.8,
     },
     title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      marginBottom: 40,
-      color: "#1e293b",
+      fontSize: 36,
+      fontWeight: "800",
+      marginBottom: 48,
+      color: "#0f172a",
       textAlign: "center",
+      letterSpacing: -0.5,
     },
     inputContainer: {
       marginBottom: 24,
@@ -246,10 +248,10 @@ const Login = () => {
       backgroundColor: "#ffffff",
       fontSize: 16,
       color: "#1e293b",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
+      boxShadowColor: "#000",
+      boxShadowOffset: { width: 0, height: 1 },
+      boxShadowOpacity: 0.05,
+      boxShadowRadius: 2,
       elevation: 1,
     },
     button: {
@@ -260,10 +262,10 @@ const Login = () => {
       justifyContent: "center",
       alignItems: "center",
       marginTop: 16,
-      shadowColor: "#2563eb",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
+      boxShadowColor: "#2563eb",
+      boxShadowOffset: { width: 0, height: 4 },
+      boxShadowOpacity: 0.2,
+      boxShadowRadius: 4,
       elevation: 4,
     },
     buttonText: {
@@ -274,7 +276,13 @@ const Login = () => {
     },
     textField: {
       color: "#475569",
-      fontSize: 14,
+      fontSize: 15,
+    },
+    signUptextField: {
+      color: "#3b82f6",
+      fontSize: 15,
+      fontWeight: "600",
+      textDecorationLine: "underline",
     },
     errorText: {
       color: "#dc2626",
