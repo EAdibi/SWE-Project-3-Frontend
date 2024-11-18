@@ -79,4 +79,7 @@ jobs:
           --port 8080 \
           --min-instances 1 \
           --max-instances 10 \
-          --timeout 300s
+          --memory 512Mi \
+          --cpu 1 \
+          --timeout 300s \
+          --set-env-vars="NODE_ENV=production"

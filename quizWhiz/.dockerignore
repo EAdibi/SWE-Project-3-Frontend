@@ -11,3 +11,6 @@ README.md
 .env.test
 .env.production
 gcp-key.json
+.expo
+dist
+web-build    
