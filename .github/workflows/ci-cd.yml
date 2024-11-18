@@ -16,6 +16,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     
     steps:
     - uses: actions/checkout@v2
@@ -38,11 +41,13 @@ jobs:
       uses: google-github-actions/auth@v1
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
+        token_format: 'access_token'
         
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
+        install_components: 'gke-gcloud-auth-plugin'
         
     - name: Create Artifact Registry Repository
       run: |
@@ -50,7 +55,7 @@ jobs:
           --repository-format=docker \
           --location=$GAR_LOCATION \
           --description="Docker repository for QuizWhiz" \
-          || true  # Continue if repository already exists
+          || true
         
     - name: Configure Docker
       run: gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev
@@ -68,4 +73,5 @@ jobs:
           --image $GAR_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA \
           --region $GAR_LOCATION \
           --platform managed \
-          --allow-unauthenticated
+          --allow-unauthenticated \
+          --service-account ${{ secrets.GCP_SERVICE_ACCOUNT }}
