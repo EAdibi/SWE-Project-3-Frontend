@@ -12,6 +12,7 @@ env:
   REPOSITORY: quizwhiz-app
   IMAGE: quizwhiz-image
   WORKING_DIR: quizWhiz
+  SERVICE_ACCOUNT: quizwhiz-deployer@quizwhiz-441721.iam.gserviceaccount.com
 
 jobs:
   build-and-deploy:
@@ -74,4 +75,4 @@ jobs:
           --region $GAR_LOCATION \
           --platform managed \
           --allow-unauthenticated \
-          --service-account ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          --service-account ${{ env.SERVICE_ACCOUNT }}
