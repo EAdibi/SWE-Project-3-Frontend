@@ -11,7 +11,7 @@ env:
   GAR_LOCATION: us-central1
   REPOSITORY: quizwhiz-app
   IMAGE: quizwhiz-image
-  WORKING_DIR: ./quizWhiz # Adjust this to match your exact directory name
+  WORKING_DIR: ./quizWhiz
 
 jobs:
   build-and-deploy:
@@ -31,7 +31,7 @@ jobs:
       
     - name: Build
       working-directory: ${{ env.WORKING_DIR }}
-      run: npm run build
+      run: npx expo export --platform web 
       
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v0
