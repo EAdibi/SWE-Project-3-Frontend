@@ -11,7 +11,7 @@ env:
   GAR_LOCATION: us-central1
   REPOSITORY: quizwhiz-app
   IMAGE: quizwhiz-image
-  WORKING_DIR: ./quizWhiz
+  WORKING_DIR: quizWhiz
 
 jobs:
   build-and-deploy:
