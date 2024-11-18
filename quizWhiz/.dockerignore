@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+build
+.dockerignore
+.git
+.gitignore
+README.md
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+gcp-key.json
+.expo
+dist
+web-build    
