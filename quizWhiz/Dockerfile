@@ -20,7 +20,7 @@ RUN npx expo export --platform web
 FROM nginx:alpine
 
 # Copy the built files to nginx
-COPY --from=builder /app/web-build /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration if you have custom config
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
