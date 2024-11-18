@@ -75,4 +75,8 @@ jobs:
           --region $GAR_LOCATION \
           --platform managed \
           --allow-unauthenticated \
-          --service-account ${{ env.SERVICE_ACCOUNT }}
+          --service-account ${{ env.SERVICE_ACCOUNT }} \
+          --port 8080 \
+          --min-instances 1 \
+          --max-instances 10 \
+          --timeout 300s
