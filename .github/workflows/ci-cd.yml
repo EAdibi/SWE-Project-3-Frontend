@@ -44,6 +44,14 @@ jobs:
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         
+    - name: Create Artifact Registry Repository
+      run: |
+        gcloud artifacts repositories create $REPOSITORY \
+          --repository-format=docker \
+          --location=$GAR_LOCATION \
+          --description="Docker repository for QuizWhiz" \
+          || true  # Continue if repository already exists
+        
     - name: Configure Docker
       run: gcloud auth configure-docker $GAR_LOCATION-docker.pkg.dev
       
