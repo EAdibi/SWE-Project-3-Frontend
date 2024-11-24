@@ -13,6 +13,7 @@ import {
   GestureDetector,
   Gesture,
 } from "react-native-gesture-handler";
+import axios from "axios";
 
 const mockFlashcards = [
   {
@@ -62,7 +63,10 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const PublicFlashCards = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flashCards, setFlashCards] = useState(mockFlashcards);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const navigateCards = (direction) => {
     if (direction === "next" && currentIndex < flashCards.length - 1) {
@@ -83,6 +87,66 @@ const PublicFlashCards = () => {
   //     console.error("Error fetching flashcards:", error);
   //   }
   // };
+
+  // const fetchFlashCards = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
+
+  //     const response = await axios.get("/getAllPublicFlashCards", {
+  //       timeout: 5000, 
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       }
+  //     });
+
+  //     if (response.status !== 200) {
+  //       throw new Error(`Server responded with status: ${response.status}`);
+  //     }
+
+  //     const data = response.data;
+      
+  //     if (!Array.isArray(data)) {
+  //       throw new Error('Received invalid data format from server');
+  //     }
+
+  //     const validatedData = data.map((card, index) => {
+  //       if (!card.question || !card.answer) {
+  //         console.warn(`Flashcard at index ${index} is missing required fields`);
+  //         return null;
+  //       }
+  //       return {
+  //         id: card.id || index + 1,
+  //         question: card.question,
+  //         answer: card.answer,
+  //         difficulty: card.difficulty || 'Not specified',
+  //         category: card.category || 'Uncategorized'
+  //       };
+  //     }).filter(card => card !== null);
+
+  //     setFlashCards(validatedData);
+  //     setCurrentIndex(0); 
+  //     setIsLoading(false);
+  //     setRetryCount(0);
+
+  //   } catch (error) {
+  //     console.error("Error fetching flashcards:", error);
+  //     setError(error.message || 'Failed to fetch flashcards');
+  //     setIsLoading(false);
+
+  //     if (retryCount < 3) {
+  //       const backoffTime = Math.pow(2, retryCount) * 1000;
+  //       setTimeout(() => {
+  //         setRetryCount(prev => prev + 1);
+  //         fetchFlashCards();
+  //       }, backoffTime);
+  //     }
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchFlashCards();
+  // }, []);
 
 
   const flipCard = () => {
@@ -105,7 +169,7 @@ const PublicFlashCards = () => {
       } else if (event.key === "ArrowRight") {
         navigateCards("next");
       } else if(event.key === " "){
-        setIsFlipped(!isFlipped);
+        flipCard();
       }
     };
 
@@ -117,6 +181,31 @@ const PublicFlashCards = () => {
   }, [currentIndex, isFlipped]);
 
   const currentCard = flashCards[currentIndex];
+
+  // if (isLoading && flashCards === mockFlashcards) {
+  //   return (
+  //     <View style={styles.container}>
+  //       <Text style={styles.loadingText}>Loading flashcards...</Text>
+  //     </View>
+  //   );
+  // }
+
+  if (error && flashCards === mockFlashcards) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity 
+          style={styles.retryButton}
+          onPress={() => {
+            setRetryCount(0);
+            fetchFlashCards();
+          }}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -344,6 +433,28 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#4CAF50",
     borderRadius: 4,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ff0000',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 
