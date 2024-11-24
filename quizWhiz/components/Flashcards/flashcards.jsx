@@ -1,16 +1,18 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  Animated,
   TouchableOpacity,
   StyleSheet,
-  PanResponder,
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import { BlurView } from "expo-blur";
+import {
+  GestureHandlerRootView,
+  GestureDetector,
+  Gesture,
+} from "react-native-gesture-handler";
 
 const mockFlashcards = [
   {
@@ -56,70 +58,11 @@ const mockFlashcards = [
 ];
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-const SWIPE_THRESHOLD = 120;
-const SWIPE_SPEED_THRESHOLD = 0.5; 
 
 const PublicFlashCards = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [flashCards, setFlashCards] = useState(mockFlashcards)
+  const [flashCards, setFlashCards] = useState(mockFlashcards);
   const [isFlipped, setIsFlipped] = useState(false);
-
-  const position = useRef(new Animated.ValueXY()).current;
-  const rotateValue = position.x.interpolate({
-    inputRange: [-screenWidth / 2, 0, screenWidth / 2],
-    outputRange: ['-10deg', '0deg', '10deg'],
-  });
-
-  const resetPosition = () => {
-    Animated.spring(position, {
-      toValue: { x: 0, y: 0 },
-      useNativeDriver: false,
-      friction: 5,
-    }).start();
-  };
-
-  const completeSwipe = (direction) => {
-    const x = direction === 'right' ? screenWidth : -screenWidth;
-    Animated.timing(position, {
-      toValue: { x, y: 0 },
-      duration: 250,
-      useNativeDriver: false,
-    }).start(() => {
-      direction === 'right' ? navigateCards('next') : navigateCards('prev');
-      position.setValue({ x: 0, y: 0 });
-    });
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        position.setOffset({
-          x: position.x._value,
-          y: position.y._value,
-        });
-      },
-      onPanResponderMove: (_, gesture) => {
-        position.setValue({ x: gesture.dx, y: 0 });
-      },
-      onPanResponderRelease: (_, gesture) => {
-        position.flattenOffset();
-        if (Math.abs(gesture.dx) > SWIPE_THRESHOLD && 
-            Math.abs(gesture.vx) > SWIPE_SPEED_THRESHOLD) {
-          if (gesture.dx > 0 && currentIndex < flashCards.length - 1) {
-            completeSwipe('right');
-          } else if (gesture.dx < 0 && currentIndex > 0) {
-            completeSwipe('left');
-          } else {
-            resetPosition();
-          }
-        } else {
-          resetPosition();
-        }
-      },
-    })
-  ).current;
 
   const navigateCards = (direction) => {
     if (direction === "next" && currentIndex < flashCards.length - 1) {
@@ -131,29 +74,58 @@ const PublicFlashCards = () => {
     }
   };
 
+  // const fetchFlashCards = async () => {
+  //   try {
+  //     const response = await axios.get("/getAllPublicFlashCards");
+  //     const data = response.data;
+  //     setFlashCards(Array.from(data));
+  //   } catch (error) {
+  //     console.error("Error fetching flashcards:", error);
+  //   }
+  // };
+
+
   const flipCard = () => {
-    if (Math.abs(position.x._value) < 5) {
-      setIsFlipped(!isFlipped);
-    }
+    setIsFlipped(!isFlipped);
   };
+
+  const swipeGesture = Gesture.Pan().onEnd((event) => {
+    const SWIPE_THRESHOLD = 50;
+    if (event.translationX > SWIPE_THRESHOLD) {
+      navigateCards("prev");
+    } else if (event.translationX < -SWIPE_THRESHOLD) {
+      navigateCards("next");
+    }
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "ArrowLeft") {
+        navigateCards("prev");
+      } else if (event.key === "ArrowRight") {
+        navigateCards("next");
+      } else if(event.key === " "){
+        setIsFlipped(!isFlipped);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentIndex, isFlipped]);
 
   const currentCard = flashCards[currentIndex];
 
-  const cardStyle = {
-    transform: [
-      { translateX: position.x },
-      { rotate: rotateValue },
-    ],
-  };
-
   return (
-    <LinearGradient
-      colors={["#4158D0", "#C850C0", "#FFCC70"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.mainContainer}
-    >
-      <BlurView intensity={50} style={styles.overlay}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <LinearGradient
+        colors={["#4158D0", "#C850C0", "#FFCC70"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.mainContainer}
+      >
         <Text style={styles.heading}>Flashcards</Text>
 
         <View style={styles.container}>
@@ -173,60 +145,62 @@ const PublicFlashCards = () => {
             </Text>
           </View>
 
-          <View style={styles.cardContainer}>
-            <TouchableOpacity
-              style={styles.navigationButton}
-              onPress={() => navigateCards("prev")}
-              disabled={currentIndex === 0}
-            >
-              <ChevronLeft
-                size={24}
-                color={currentIndex === 0 ? "#ccc" : "#000"}
-              />
-            </TouchableOpacity>
+          <GestureDetector gesture={swipeGesture}>
+            <View style={styles.cardContainer}>
+              <TouchableOpacity
+                style={styles.navigationButton}
+                onPress={() => navigateCards("prev")}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft
+                  size={24}
+                  color={currentIndex === 0 ? "#ccc" : "#000"}
+                />
+              </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.cardWrapper, cardStyle]} onPress={flipCard}>
-              <View style={[styles.card, styles.cardFront]}>
-                <Text style={styles.cardTitle}>
-                  {isFlipped ? "Answer:" : "Question:"}
-                </Text>
-                <Text style={styles.cardText}>
-                  {isFlipped ? currentCard.answer : currentCard.question}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              <TouchableOpacity style={[styles.cardWrapper]} onPress={flipCard}>
+                <View style={[styles.card, styles.cardFront]}>
+                  <Text style={styles.cardTitle}>
+                    {isFlipped ? "Answer:" : "Question:"}
+                  </Text>
+                  <Text style={styles.cardText}>
+                    {isFlipped ? currentCard.answer : currentCard.question}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.navigationButton}
-              onPress={() => navigateCards("next")}
-              disabled={currentIndex === flashCards.length - 1}
-            >
-              <ChevronRight
-                size={24}
-                color={
-                  currentIndex === flashCards.length - 1 ? "#ccc" : "#000"
-                }
-              />
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.navigationButton}
+                onPress={() => navigateCards("next")}
+                disabled={currentIndex === flashCards.length - 1}
+              >
+                <ChevronRight
+                  size={24}
+                  color={
+                    currentIndex === flashCards.length - 1 ? "#ccc" : "#000"
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+          </GestureDetector>
 
-          <Text style={styles.instruction}>Tap card to flip</Text>
+          <Text style={styles.instruction}>
+            Tap card to flip • Swipe or use arrow keys to navigate
+          </Text>
 
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
                 {
-                  width: `${
-                    ((currentIndex + 1) / flashCards.length) * 100
-                  }%`,
+                  width: `${((currentIndex + 1) / flashCards.length) * 100}%`,
                 },
               ]}
             />
           </View>
         </View>
-      </BlurView>
-    </LinearGradient>
+      </LinearGradient>
+    </GestureHandlerRootView>
   );
 };
 
