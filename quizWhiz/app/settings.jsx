@@ -1,10 +1,12 @@
-import SettingsPage from "../components/Settings/settings";
+import Settings from "../components/Settings/settings";
 import { View } from "react-native";
 
 const Page = () => {
+  return (
     <View>
-        <SettingsPage/>
+      <Settings />
     </View>
-}
+  );
+};
 
 export default Page;

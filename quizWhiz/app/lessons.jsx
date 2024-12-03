@@ -1,10 +1,12 @@
-import SettingsPage from "../components/Settings/settings";
+import PublicLessons from "../components/Lessons/lessons";
 import { View } from "react-native";
 
 const Page = () => {
+  return (
     <View>
-        <SettingsPage/>
+      <PublicLessons />
     </View>
+  );
 }
 
 export default Page;
