@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
-import axiosInstance from "../../api/instance";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const Login = () => {
@@ -40,7 +40,7 @@ const Login = () => {
       justifyContent: "center",
       alignContent: "center",
       paddingTop: 170,
-      paddingLeft: 6
+      paddingLeft: 6,
     },
     webLayout: {
       flex: 1,
@@ -162,6 +162,30 @@ const Login = () => {
     },
   });
 
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (event.key === "Enter" && !isLoading) {
+        handleLogin();
+      }
+    },
+    [isLoading]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keypress", handleKeyPress);
+
+    return () => {
+      document.removeEventListener("keypress", handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
+  const handleSubmit = (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+    handleLogin();
+  };
+
   const validateForm = () => {
     let tempErrors = {};
     let isValid = true;
@@ -191,23 +215,27 @@ const Login = () => {
 
       setIsLoading(true);
 
-      const response = await axios.post('https://quizwhiz-backend-679124120937.us-central1.run.app/users/login', {
-        username: username.trim(),
-        password: password.trim(),
-      });
+      const response = await axios.post(
+        "https://quizwhiz-backend-679124120937.us-central1.run.app/users/login",
+        {
+          username: username.trim(),
+          password: password.trim(),
+        }
+      );
 
-      // Handle successful login
       if (response.data.access && response.data.refresh) {
-        // Store tokens and user data as needed
-        // await AsyncStorage.setItem('accessToken', response.data.access);
-        // await AsyncStorage.setItem('refreshToken', response.data.refresh);
-        // await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
-        console.log(response.data)
+        await AsyncStorage.setItem("accessToken", response.data.access);
+        await AsyncStorage.setItem("refreshToken", response.data.refresh);
+
+        const userData = JSON.stringify(response.data.user);
+        await AsyncStorage.setItem("userData", userData);
+        console.log(response.data);
         router.push("/homepage");
       }
     } catch (error) {
       setErrors({
-        general: error?.response?.data?.error || "An error occurred during login",
+        general:
+          error?.response?.data?.error || "An error occurred during login",
       });
     } finally {
       setIsLoading(false);
@@ -221,7 +249,7 @@ const Login = () => {
   const renderForm = () => (
     <View style={styles.formWrapper}>
       <Text style={styles.title}>Welcome Back</Text>
-      <View>
+      <View as="form" onSubmit={handleSubmit} style={{ width: "100%" }}>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Username</Text>
           <TextInput
@@ -234,6 +262,7 @@ const Login = () => {
             }}
             autoCapitalize="none"
             editable={!isLoading}
+            onSubmitEditing={handleSubmit} // Handle Enter on this input
           />
           {errors.username && (
             <Text style={errorStyles.errorText}>{errors.username}</Text>
@@ -251,6 +280,7 @@ const Login = () => {
             }}
             secureTextEntry
             editable={!isLoading}
+            onSubmitEditing={handleSubmit} // Handle Enter on this input
           />
           {errors.password && (
             <Text style={errorStyles.errorText}>{errors.password}</Text>
@@ -263,8 +293,9 @@ const Login = () => {
         )}
         <TouchableOpacity
           style={[styles.button, isLoading && { opacity: 0.7 }]}
-          onPress={handleLogin}
+          onPress={handleSubmit}
           disabled={isLoading}
+          tabIndex={0}
         >
           <Text style={styles.buttonText}>
             {isLoading ? "Logging in..." : "Login"}
@@ -301,9 +332,7 @@ const Login = () => {
           resizeMode="cover"
         />
       </View>
-      <View style={styles.webFormContainer}>
-        {renderForm()}
-      </View>
+      <View style={styles.webFormContainer}>{renderForm()}</View>
     </View>
   );
 };
