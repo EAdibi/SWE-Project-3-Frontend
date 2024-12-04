@@ -9,8 +9,8 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
-import axiosInstance from "../../api/instance";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 const SignUp = () => {
   const router = useRouter();
@@ -24,17 +24,6 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const windowWidth = Dimensions.get("window").width;
   const isMobile = windowWidth < 768;
-
-  const errorStyles = StyleSheet.create({
-    errorText: {
-      color: "#DC2626",
-      fontSize: 14,
-      marginTop: 4,
-    },
-    inputError: {
-      borderColor: "#DC2626",
-    },
-  });
 
   const validateForm = () => {
     let tempErrors = {};
@@ -83,22 +72,28 @@ const SignUp = () => {
 
       setIsLoading(true);
 
-      //   const response = await axiosInstance.post('auth/login', {
-      //     email: email.trim(),
-      //     password: password.trim(),
-      //   });
 
-      //   await AsyncStorage.setItem('authToken', response.data.token);
-      router.replace("homepage");
+      const response = await axios.post('https://quizwhiz-backend-679124120937.us-central1.run.app/users/signup', {
+        username: `${firstName.trim()}${lastName.trim()}`.toLowerCase(),
+        password: password.trim(),
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
+      });
+
+      if (response.status === 201 || response.status === 200) {
+        router.replace("/");
+      }
     } catch (error) {
+      console.error('Signup Error:', error);
       setErrors({
         general:
           error?.response?.data?.message ||
+          error?.response?.data?.error ||
           error.message ||
-          "An error occurred during login",
+          "An error occurred during signup",
       });
     } finally {
-      console.log(errors);
       setIsLoading(false);
     }
   };
