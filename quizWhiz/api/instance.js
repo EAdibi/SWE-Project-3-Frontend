@@ -1,35 +1,13 @@
 import axios from 'axios';
 
+// Create axios instance with custom config
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_NATIVE_APP_BACKEND_URL?.endsWith('/')
-    ? process.env.REACT_NATIVE_APP_BACKEND_URL.slice(0, -1)
-    : process.env.REACT_NATIVE_APP_BACKEND_URL,
+  baseURL: process.env.REACT_NATIVE_APP_BACKEND_URL,
+  timeout: 10000, // 10 seconds
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
-  timeout: 5000,
 });
 
-axiosInstance.interceptors.request.use(config => {
-  if (!config.url.endsWith('/')) {
-    config.url = `${config.url}/`;
-  }
-  return config;
-});
-
-axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response) {
-      console.error('Response Error:', error.response.data);
-      console.error('Status Code:', error.response.status);
-    } else if (error.request) {
-      console.error('Request Error:', error.request);
-    } else {
-      console.error('Error:', error.message);
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default axiosInstance;
+export default axiosInstance

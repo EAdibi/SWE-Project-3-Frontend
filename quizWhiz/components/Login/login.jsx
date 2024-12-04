@@ -11,150 +11,17 @@ import {
 } from "react-native";
 import axiosInstance from "../../api/instance";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 const Login = () => {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const windowWidth = Dimensions.get("window").width;
   const isMobile = windowWidth < 768;
-
-  const errorStyles = StyleSheet.create({
-    errorText: {
-      color: "#DC2626",
-      fontSize: 14,
-      marginTop: 4,
-    },
-    inputError: {
-      borderColor: "#DC2626",
-    },
-  });
-
-  const validateForm = () => {
-    let tempErrors = {};
-    let isValid = true;
-
-    if (!email.trim()) {
-      tempErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      tempErrors.email = "Please enter a valid email";
-      isValid = false;
-    }
-
-    if (!password.trim()) {
-      tempErrors.password = "Password is required";
-      isValid = false;
-    } else if (password.length < 8) {
-      tempErrors.password = "Password must be at least 8 characters";
-      isValid = false;
-    }
-
-    setErrors(tempErrors);
-    return isValid;
-  };
-
-  const handleLogin = async () => {
-    try {
-      if (!validateForm()) {
-        return;
-      }
-
-      setIsLoading(true);
-
-      //   const response = await axiosInstance.post('auth/login', {
-      //     email: email.trim(),
-      //     password: password.trim(),
-      //   });
-
-      //   await AsyncStorage.setItem('authToken', response.data.token);
-      router.push("/homepage")
-    } catch (error) {
-      setErrors({
-        general:
-          error?.response?.data?.message ||
-          error.message ||
-          "An error occurred during login",
-      });
-    } finally {
-      console.log(errors);
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignUp = () => {
-    router.push("/signUp")
-  };
-
-  const renderForm = () => (
-    <View style={styles.formWrapper}>
-      <Text style={styles.title}>Welcome Back</Text>
-      <View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={[styles.input, errors.email && errorStyles.inputError]}
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              setErrors((prev) => ({ ...prev, email: "", general: "" }));
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!isLoading}
-          />
-          {errors.email && (
-            <Text style={errorStyles.errorText}>{errors.email}</Text>
-          )}
-        </View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={[styles.input, errors.password && errorStyles.inputError]}
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setErrors((prev) => ({ ...prev, password: "", general: "" }));
-            }}
-            secureTextEntry
-            editable={!isLoading}
-          />
-          {errors.password && (
-            <Text style={errorStyles.errorText}>{errors.password}</Text>
-          )}
-        </View>
-        {errors.general && (
-          <Text style={[errorStyles.errorText, { marginBottom: 10 }]}>
-            {errors.general}
-          </Text>
-        )}
-        <TouchableOpacity
-          style={[styles.button, isLoading && { opacity: 0.7 }]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Logging in..." : "Login"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.signUpContainer}>
-        <Text style={styles.textField}>New User?</Text>
-        <TouchableOpacity
-          style={[styles.signUpButton, isLoading && { opacity: 0.7 }]}
-          onPress={handleSignUp}
-          disabled={isLoading}
-        >
-          <Text style={styles.signUptextField}>Create Your Account</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
   const styles = StyleSheet.create({
     signUpContainer: {
@@ -188,10 +55,7 @@ const Login = () => {
       backgroundColor: "#ffffff",
       borderRadius: 16,
       margin: 16,
-      boxShadowColor: "#000",
-      boxShadowOffset: { width: 0, height: 2 },
-      boxShadowOpacity: 0.1,
-      boxShadowRadius: 8,
+      boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
       elevation: 4,
     },
     webFormContainer: {
@@ -205,10 +69,7 @@ const Login = () => {
       backgroundColor: "#ffffff",
       padding: 32,
       borderRadius: 16,
-      boxShadowColor: "#000",
-      boxShadowOffset: { width: 0, height: 2 },
-      boxShadowOpacity: 0.1,
-      boxShadowRadius: 8,
+      boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
       elevation: 4,
     },
     imageContainer: {
@@ -248,10 +109,7 @@ const Login = () => {
       backgroundColor: "#ffffff",
       fontSize: 16,
       color: "#1e293b",
-      boxShadowColor: "#000",
-      boxShadowOffset: { width: 0, height: 1 },
-      boxShadowOpacity: 0.05,
-      boxShadowRadius: 2,
+      boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.05)",
       elevation: 1,
     },
     button: {
@@ -262,10 +120,7 @@ const Login = () => {
       justifyContent: "center",
       alignItems: "center",
       marginTop: 16,
-      boxShadowColor: "#2563eb",
-      boxShadowOffset: { width: 0, height: 4 },
-      boxShadowOpacity: 0.2,
-      boxShadowRadius: 4,
+      boxShadow: "0px 4px 4px rgba(37, 99, 235, 0.2)",
       elevation: 4,
     },
     buttonText: {
@@ -296,6 +151,139 @@ const Login = () => {
     },
   });
 
+  const errorStyles = StyleSheet.create({
+    errorText: {
+      color: "#DC2626",
+      fontSize: 14,
+      marginTop: 4,
+    },
+    inputError: {
+      borderColor: "#DC2626",
+    },
+  });
+
+  const validateForm = () => {
+    let tempErrors = {};
+    let isValid = true;
+
+    if (!username.trim()) {
+      tempErrors.username = "Username is required";
+      isValid = false;
+    }
+
+    if (!password.trim()) {
+      tempErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 8) {
+      tempErrors.password = "Password must be at least 8 characters";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
+  const handleLogin = async () => {
+    try {
+      if (!validateForm()) {
+        return;
+      }
+
+      setIsLoading(true);
+
+      const response = await axios.post('https://quizwhiz-backend-679124120937.us-central1.run.app/users/login', {
+        username: username.trim(),
+        password: password.trim(),
+      });
+
+      // Handle successful login
+      if (response.data.access && response.data.refresh) {
+        // Store tokens and user data as needed
+        // await AsyncStorage.setItem('accessToken', response.data.access);
+        // await AsyncStorage.setItem('refreshToken', response.data.refresh);
+        // await AsyncStorage.setItem('userData', JSON.stringify(response.data.user));
+        console.log(response.data)
+        router.push("/homepage");
+      }
+    } catch (error) {
+      setErrors({
+        general: error?.response?.data?.error || "An error occurred during login",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = () => {
+    router.push("/signUp");
+  };
+
+  const renderForm = () => (
+    <View style={styles.formWrapper}>
+      <Text style={styles.title}>Welcome Back</Text>
+      <View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Username</Text>
+          <TextInput
+            style={[styles.input, errors.username && errorStyles.inputError]}
+            placeholder="Enter your username"
+            value={username}
+            onChangeText={(text) => {
+              setUsername(text);
+              setErrors((prev) => ({ ...prev, username: "", general: "" }));
+            }}
+            autoCapitalize="none"
+            editable={!isLoading}
+          />
+          {errors.username && (
+            <Text style={errorStyles.errorText}>{errors.username}</Text>
+          )}
+        </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={[styles.input, errors.password && errorStyles.inputError]}
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setErrors((prev) => ({ ...prev, password: "", general: "" }));
+            }}
+            secureTextEntry
+            editable={!isLoading}
+          />
+          {errors.password && (
+            <Text style={errorStyles.errorText}>{errors.password}</Text>
+          )}
+        </View>
+        {errors.general && (
+          <Text style={[errorStyles.errorText, { marginBottom: 10 }]}>
+            {errors.general}
+          </Text>
+        )}
+        <TouchableOpacity
+          style={[styles.button, isLoading && { opacity: 0.7 }]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Logging in..." : "Login"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.signUpContainer}>
+        <Text style={styles.textField}>New User?</Text>
+        <TouchableOpacity
+          style={isLoading && { opacity: 0.7 }}
+          onPress={handleSignUp}
+          disabled={isLoading}
+        >
+          <Text style={styles.signUptextField}>Create Your Account</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   if (isMobile) {
     return (
       <View style={styles.mobileLayout}>
@@ -313,7 +301,9 @@ const Login = () => {
           resizeMode="cover"
         />
       </View>
-      <View style={styles.webFormContainer}>{renderForm()}</View>
+      <View style={styles.webFormContainer}>
+        {renderForm()}
+      </View>
     </View>
   );
 };
