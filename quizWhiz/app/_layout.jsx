@@ -20,12 +20,11 @@ export default function Layout() {
         const userDataString = await AsyncStorage.getItem('userData');
         if (userDataString) {
           const userData = JSON.parse(userDataString);
-          // Assuming the username is stored in the userData object
-          setUsername(userData.username || '');
+          setUsername(userData.username);
         }
       } catch (error) {
         console.error('Error fetching username:', error);
-        setUsername(''); // Set empty username in case of error
+        setUsername(''); 
       }
     };
     getUsername();
@@ -113,7 +112,7 @@ export default function Layout() {
           style={styles.menuButton}
           onPress={() => setMenuVisible(true)}
         >
-          <MoreVertical size={24} color="#71717a" />
+          <MoreVertical size={24} color="white" />
         </Pressable>
 
         <CustomMenu />
@@ -175,14 +174,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'orange',
+    backgroundColor: 'black',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
+    color: 'white',
   },
   navButtons: {
     flexDirection: 'row',

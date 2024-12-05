@@ -230,7 +230,7 @@ const Login = () => {
         const userData = JSON.stringify(response.data.user);
         await AsyncStorage.setItem("userData", userData);
         console.log(response.data);
-        router.push("/homepage");
+        router.replace("/homepage");
       }
     } catch (error) {
       setErrors({
