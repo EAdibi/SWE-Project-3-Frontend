@@ -195,10 +195,10 @@ const Login = () => {
       isValid = false;
     }
 
-    if (!password.trim()) {
-      tempErrors.password = "Password is required";
-      isValid = false;
-    } 
+    // if (!password.trim()) {
+    //   tempErrors.password = "Password is required";
+    //   isValid = false;
+    // } 
     
     // else if (password.length < 8) {
     //   tempErrors.password = "Password must be at least 8 characters";

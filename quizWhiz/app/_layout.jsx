@@ -1,42 +1,68 @@
-import { Tabs } from 'expo-router';
-import { useState, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
-import { usePathname } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Home, Book, BookOpenText, MoreVertical, Settings, LogOut } from 'lucide-react';
-import { useRouter } from 'expo-router';
+import { Tabs } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
+import { View, Text, Pressable, StyleSheet, Modal } from "react-native";
+import { usePathname } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  Home,
+  Book,
+  BookOpenText,
+  MoreVertical,
+  Settings,
+  LogOut,
+  ShieldCheck,
+} from "lucide-react";
+import { useRouter, useFocusEffect } from "expo-router";
 
 export default function Layout() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
+  const [id, setID] = useState();
   const pathname = usePathname();
   const router = useRouter();
-  const excludedRoutes = ['/', '/signUp'];
+  const excludedRoutes = ["/", "/signUp"];
   const showHeader = !excludedRoutes.includes(pathname);
 
-  useEffect(() => {
-    const getUsername = async () => {
-      try {
-        const userDataString = await AsyncStorage.getItem('userData');
-        if (userDataString) {
-          const userData = JSON.parse(userDataString);
-          setUsername(userData.username);
-        }
-      } catch (error) {
-        console.error('Error fetching username:', error);
-        setUsername(''); 
+  const getUsername = useCallback(async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem("userData");
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setID(userData.id);
+        setUsername(userData.username);
       }
-    };
-    getUsername();
+    } catch (error) {
+      console.error("Error fetching username:", error);
+      setUsername("");
+    }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (showHeader) {
+        getUsername();
+      }
+    }, [showHeader, getUsername])
+  );
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      getUsername();
+    };
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [getUsername]);
 
   const handleLogout = async () => {
     try {
       await AsyncStorage.clear();
-      setUsername(''); 
-      router.replace('/');
+      setUsername("");
+      router.replace("/");
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     }
   };
 
@@ -47,22 +73,34 @@ export default function Layout() {
       onRequestClose={() => setMenuVisible(false)}
       animationType="fade"
     >
-      <Pressable 
+      <Pressable
         style={styles.modalOverlay}
         onPress={() => setMenuVisible(false)}
       >
         <View style={styles.menuContainer}>
+          {id === 3 && (
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                router.push("/admin");
+              }}
+            >
+              <ShieldCheck size={24} color="#71717a" />
+              <Text style={styles.menuText}>Admin</Text>
+            </Pressable>
+          )}
           <Pressable
             style={styles.menuItem}
             onPress={() => {
               setMenuVisible(false);
-              router.push('/settings');
+              router.push("/settings");
             }}
           >
             <Settings size={24} color="#71717a" />
             <Text style={styles.menuText}>Settings</Text>
           </Pressable>
-          
+
           <Pressable
             style={styles.menuItem}
             onPress={() => {
@@ -82,29 +120,38 @@ export default function Layout() {
     return (
       <View style={styles.header}>
         <Text style={styles.username}>
-          {username ? `Welcome, ${username}` : 'Welcome'}
+          {username ? `Welcome, ${username}` : "Welcome"}
         </Text>
 
         <View style={styles.navButtons}>
           <Pressable
             style={styles.navButton}
-            onPress={() => router.push('/homepage')}
+            onPress={() => router.push("/homepage")}
           >
-            <Home size={24} color={pathname === '/homepage' ? '#6b21a8' : '#71717a'} />
+            <Home
+              size={24}
+              color={pathname === "/homepage" ? "#6b21a8" : "#71717a"}
+            />
           </Pressable>
 
           <Pressable
             style={styles.navButton}
-            onPress={() => router.push('/flashcards')}
+            onPress={() => router.push("/flashcards")}
           >
-            <Book size={24} color={pathname === '/flashcards' ? '#6b21a8' : '#71717a'} />
+            <Book
+              size={24}
+              color={pathname === "/flashcards" ? "#6b21a8" : "#71717a"}
+            />
           </Pressable>
 
           <Pressable
             style={styles.navButton}
-            onPress={() => router.push('/lessons')}
+            onPress={() => router.push("/lessons")}
           >
-            <BookOpenText size={24} color={pathname === '/lessons' ? '#6b21a8' : '#71717a'} />
+            <BookOpenText
+              size={24}
+              color={pathname === "/lessons" ? "#6b21a8" : "#71717a"}
+            />
           </Pressable>
         </View>
 
@@ -124,7 +171,7 @@ export default function Layout() {
     <Tabs
       screenOptions={{
         header: showHeader ? () => <CustomHeader /> : () => null,
-        tabBarStyle: { display: 'none'},
+        tabBarStyle: { display: "none" },
       }}
     >
       <Tabs.Screen
@@ -169,22 +216,22 @@ export default function Layout() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'black',
+    backgroundColor: "black",
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
   username: {
     fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
+    fontWeight: "600",
+    color: "white",
   },
   navButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 24,
   },
   navButton: {
@@ -195,12 +242,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
   },
   menuContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 8,
     marginTop: 60,
@@ -209,14 +256,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     gap: 12,
     borderRadius: 6,
   },
   menuText: {
     fontSize: 16,
-    color: '#1f2937',
+    color: "#1f2937",
   },
 });

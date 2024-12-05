@@ -1,12 +1,12 @@
 import Admin from "../components/Admin/admin";
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 
 const Page = () => {
-    return(
-        <View>
-            <Admin/>
-        </View>
-    )
-}
+    return (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+            <Admin />
+        </ScrollView>
+    );
+};
 
 export default Page;
