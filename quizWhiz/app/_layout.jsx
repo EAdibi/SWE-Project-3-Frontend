@@ -78,7 +78,7 @@ export default function Layout() {
         onPress={() => setMenuVisible(false)}
       >
         <View style={styles.menuContainer}>
-          {id === 3 && (
+          {id === 11 && (
             <Pressable
               style={styles.menuItem}
               onPress={() => {
@@ -119,49 +119,55 @@ export default function Layout() {
   const CustomHeader = () => {
     return (
       <View style={styles.header}>
-        <Text style={styles.username}>
-          {username ? `Welcome, ${username}` : "Welcome"}
-        </Text>
-
-        <View style={styles.navButtons}>
+        <View style={styles.leftSection}>
+          <Text style={styles.username}>
+            {username ? `Welcome, ${username}` : "Welcome"}
+          </Text>
+        </View>
+  
+        <View style={styles.centerSection}>
+          <View style={styles.navButtons}>
+            <Pressable
+              style={styles.navButton}
+              onPress={() => router.push("/homepage")}
+            >
+              <Home
+                size={24}
+                color={pathname === "/homepage" ? "#6b21a8" : "#71717a"}
+              />
+            </Pressable>
+  
+            <Pressable
+              style={styles.navButton}
+              onPress={() => router.push("/flashcards")}
+            >
+              <Book
+                size={24}
+                color={pathname === "/flashcards" ? "#6b21a8" : "#71717a"}
+              />
+            </Pressable>
+  
+            <Pressable
+              style={styles.navButton}
+              onPress={() => router.push("/lessons")}
+            >
+              <BookOpenText
+                size={24}
+                color={pathname === "/lessons" ? "#6b21a8" : "#71717a"}
+              />
+            </Pressable>
+          </View>
+        </View>
+  
+        <View style={styles.rightSection}>
           <Pressable
-            style={styles.navButton}
-            onPress={() => router.push("/homepage")}
+            style={styles.menuButton}
+            onPress={() => setMenuVisible(true)}
           >
-            <Home
-              size={24}
-              color={pathname === "/homepage" ? "#6b21a8" : "#71717a"}
-            />
-          </Pressable>
-
-          <Pressable
-            style={styles.navButton}
-            onPress={() => router.push("/flashcards")}
-          >
-            <Book
-              size={24}
-              color={pathname === "/flashcards" ? "#6b21a8" : "#71717a"}
-            />
-          </Pressable>
-
-          <Pressable
-            style={styles.navButton}
-            onPress={() => router.push("/lessons")}
-          >
-            <BookOpenText
-              size={24}
-              color={pathname === "/lessons" ? "#6b21a8" : "#71717a"}
-            />
+            <MoreVertical size={24} color="white" />
           </Pressable>
         </View>
-
-        <Pressable
-          style={styles.menuButton}
-          onPress={() => setMenuVisible(true)}
-        >
-          <MoreVertical size={24} color="white" />
-        </Pressable>
-
+  
         <CustomMenu />
       </View>
     );
@@ -225,6 +231,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
+  leftSection: {
+    flex: 1,
+  },
+  centerSection: {
+    flex: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightSection: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
   username: {
     fontSize: 16,
     fontWeight: "600",
@@ -233,6 +251,8 @@ const styles = StyleSheet.create({
   navButtons: {
     flexDirection: "row",
     gap: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   navButton: {
     padding: 8,
