@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -24,6 +25,30 @@ const SignUp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const windowWidth = Dimensions.get("window").width;
   const isMobile = windowWidth < 768;
+
+  const handleKeyPress = useCallback(
+    (event) => {
+      if (event.key === "Enter" && !isLoading) {
+        handleSignUp();
+      }
+    },
+    [isLoading]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keypress", handleKeyPress);
+
+    return () => {
+      document.removeEventListener("keypress", handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
+  const handleSubmit = (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+    handleSignUp();
+  };
 
   const validateForm = () => {
     let tempErrors = {};
@@ -72,20 +97,22 @@ const SignUp = () => {
 
       setIsLoading(true);
 
-
-      const response = await axios.post('https://quizwhiz-backend-679124120937.us-central1.run.app/users/signup', {
-        username: `${firstName.trim()}${lastName.trim()}`.toLowerCase(),
-        password: password.trim(),
-        email: email.trim(),
-        firstName: firstName.trim(),
-        lastName: lastName.trim()
-      });
+      const response = await axios.post(
+        "https://quizwhiz-backend-679124120937.us-central1.run.app/users/signup",
+        {
+          username: `${firstName.trim()}${lastName.trim()}`.toLowerCase(),
+          password: password.trim(),
+          email: email.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        }
+      );
 
       if (response.status === 201 || response.status === 200) {
         router.replace("/");
       }
     } catch (error) {
-      console.error('Signup Error:', error);
+      console.error("Signup Error:", error);
       setErrors({
         general:
           error?.response?.data?.message ||
@@ -105,113 +132,121 @@ const SignUp = () => {
   const renderForm = () => (
     <View style={styles.formWrapper}>
       <Text style={styles.title}>Create Account</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>First Name</Text>
-        <TextInput
-          style={[styles.input, errors.firstName && styles.inputError]}
-          placeholder="Enter your First Name"
-          value={firstName}
-          onChangeText={(text) => {
-            setFirstName(text);
-            setErrors((prev) => ({ ...prev, firstName: "", general: "" }));
-          }}
-          editable={!isLoading}
-          placeholderTextColor="#94a3b8"
-        />
-        {errors.firstName && (
-          <Text style={styles.errorText}>{errors.firstName}</Text>
+      <View as="form" onSubmit={handleSubmit} style={{ width: "100%" }}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>First Name</Text>
+          <TextInput
+            style={[styles.input, errors.firstName && styles.inputError]}
+            placeholder="Enter your First Name"
+            value={firstName}
+            onChangeText={(text) => {
+              setFirstName(text);
+              setErrors((prev) => ({ ...prev, firstName: "", general: "" }));
+            }}
+            editable={!isLoading}
+            placeholderTextColor="#94a3b8"
+            onSubmitEditing={handleSubmit}
+          />
+          {errors.firstName && (
+            <Text style={styles.errorText}>{errors.firstName}</Text>
+          )}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+            style={[styles.input, errors.lastName && styles.inputError]}
+            placeholder="Enter your Last Name"
+            value={lastName}
+            onChangeText={(text) => {
+              setLastName(text);
+              setErrors((prev) => ({ ...prev, lastName: "", general: "" }));
+            }}
+            editable={!isLoading}
+            placeholderTextColor="#94a3b8"
+            onSubmitEditing={handleSubmit}
+          />
+          {errors.lastName && (
+            <Text style={styles.errorText}>{errors.lastName}</Text>
+          )}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={[styles.input, errors.email && styles.inputError]}
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              setErrors((prev) => ({ ...prev, email: "", general: "" }));
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!isLoading}
+            placeholderTextColor="#94a3b8"
+            onSubmitEditing={handleSubmit}
+          />
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={[styles.input, errors.password && styles.inputError]}
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setErrors((prev) => ({ ...prev, password: "", general: "" }));
+            }}
+            secureTextEntry
+            editable={!isLoading}
+            placeholderTextColor="#94a3b8"
+            onSubmitEditing={handleSubmit}
+          />
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Confirm Password</Text>
+          <TextInput
+            style={[styles.input, errors.confirm && styles.inputError]}
+            placeholder="Confirm password"
+            value={confirm}
+            onChangeText={(text) => {
+              setConfirm(text);
+              setErrors((prev) => ({ ...prev, confirm: "", general: "" }));
+            }}
+            secureTextEntry
+            editable={!isLoading}
+            placeholderTextColor="#94a3b8"
+            onSubmitEditing={handleSubmit}
+          />
+          {errors.confirm && (
+            <Text style={styles.errorText}>{errors.confirm}</Text>
+          )}
+        </View>
+
+        {errors.general && (
+          <Text style={[styles.errorText, { marginBottom: 10 }]}>
+            {errors.general}
+          </Text>
         )}
+
+        <TouchableOpacity
+          style={[styles.button, isLoading && { opacity: 0.7 }]}
+          onPress={handleSubmit}
+          disabled={isLoading}
+          tabIndex={0}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Creating Account..." : "Sign Up"}
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Last Name</Text>
-        <TextInput
-          style={[styles.input, errors.lastName && styles.inputError]}
-          placeholder="Enter your Last Name"
-          value={lastName}
-          onChangeText={(text) => {
-            setLastName(text);
-            setErrors((prev) => ({ ...prev, lastName: "", general: "" }));
-          }}
-          editable={!isLoading}
-          placeholderTextColor="#94a3b8"
-        />
-        {errors.lastName && (
-          <Text style={styles.errorText}>{errors.lastName}</Text>
-        )}
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={[styles.input, errors.email && styles.inputError]}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            setErrors((prev) => ({ ...prev, email: "", general: "" }));
-          }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!isLoading}
-          placeholderTextColor="#94a3b8"
-        />
-        {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={[styles.input, errors.password && styles.inputError]}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            setErrors((prev) => ({ ...prev, password: "", general: "" }));
-          }}
-          secureTextEntry
-          editable={!isLoading}
-          placeholderTextColor="#94a3b8"
-        />
-        {errors.password && (
-          <Text style={styles.errorText}>{errors.password}</Text>
-        )}
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Confirm Password</Text>
-        <TextInput
-          style={[styles.input, errors.confirm && styles.inputError]}
-          placeholder="Confirm password"
-          value={confirm}
-          onChangeText={(text) => {
-            setConfirm(text);
-            setErrors((prev) => ({ ...prev, confirm: "", general: "" }));
-          }}
-          secureTextEntry
-          editable={!isLoading}
-          placeholderTextColor="#94a3b8"
-        />
-        {errors.confirm && (
-          <Text style={styles.errorText}>{errors.confirm}</Text>
-        )}
-      </View>
-
-      {errors.general && (
-        <Text style={[styles.errorText, { marginBottom: 10 }]}>
-          {errors.general}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && { opacity: 0.7 }]}
-        onPress={handleSignUp}
-        disabled={isLoading}
-      >
-        <Text style={styles.buttonText}>
-          {isLoading ? "Creating Account..." : "Sign Up"}
-        </Text>
-      </TouchableOpacity>
 
       <View style={styles.signUpContainer}>
         <Text style={styles.textField}>Already have an Account?</Text>
@@ -255,11 +290,6 @@ const SignUp = () => {
     container: {
       flex: 1,
       backgroundColor: "#ffffff",
-      minHeight: "100vh",
-    },
-    mobileLayout: {
-      flex: 1,
-      paddingTop: 0,
     },
     webLayout: {
       flex: 1,
@@ -279,18 +309,22 @@ const SignUp = () => {
       justifyContent: "center",
       alignItems: "center",
     },
+    mobileScrollView: {
+      flex: 1,
+      backgroundColor: "#ffffff",
+    },
+    mobileLayout: {
+      paddingVertical: 20,
+      minHeight: Platform.select({ web: "100%", default: "auto" }),
+    },
     formWrapper: {
       width: "100%",
-      height: "100vh",
+      height: "auto",
       maxWidth: 440,
       backgroundColor: "#ffffff",
-      padding: 40,
+      padding: Platform.select({ web: 40, default: 20 }),
       borderRadius: 24,
-      boxShadowColor: "#64748b",
-      boxShadowOffset: { width: 0, height: 8 },
-      boxShadowOpacity: 0.04,
-      boxShadowRadius: 16,
-      elevation: 4,
+      alignSelf: "center",
     },
     imageContainer: {
       flex: Platform.select({ web: 0.6, default: 0.6 }),
@@ -366,8 +400,14 @@ const SignUp = () => {
 
   if (isMobile) {
     return (
-      <View style={styles.mobileLayout}>
-        <View>{renderForm()}</View>
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.mobileScrollView}
+          contentContainerStyle={styles.mobileLayout}
+          showsVerticalScrollIndicator={true}
+        >
+          {renderForm()}
+        </ScrollView>
       </View>
     );
   }
