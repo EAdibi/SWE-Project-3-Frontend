@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   Platform,
   Dimensions,
   StatusBar as RNStatusBar,
@@ -14,7 +13,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, BookOpen, Brain, Plus, Search } from "lucide-react-native";
 
 const windowWidth = Dimensions.get("window").width;
-
 const STATUSBAR_HEIGHT = RNStatusBar.currentHeight || 0;
 
 const HomeScreen = () => {
@@ -22,18 +20,8 @@ const HomeScreen = () => {
 
   const recentStudySets = [
     { id: 1, title: "JavaScript Basics", cards: 25, lastStudied: "2 days ago" },
-    {
-      id: 2,
-      title: "React Fundamentals",
-      cards: 30,
-      lastStudied: "1 week ago",
-    },
-    {
-      id: 3,
-      title: "Python Data Structures",
-      cards: 40,
-      lastStudied: "3 days ago",
-    },
+    { id: 2, title: "React Fundamentals", cards: 30, lastStudied: "1 week ago" },
+    { id: 3, title: "Python Data Structures", cards: 40, lastStudied: "3 days ago" },
   ];
 
   const categories = [
@@ -48,24 +36,20 @@ const HomeScreen = () => {
       colors={["#4158D0", "#C850C0", "#FFCC70"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.mainContainer}  
+      style={styles.mainContainer}
     >
       <View style={styles.container}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={true}
-        >
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Text style={styles.appTitle}>QuizWhiz</Text>
-              <TouchableOpacity style={styles.createButton}>
-                <Plus size={20} color="#FFFFFF" />
-                <Text style={styles.createButtonText}>Create Set</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.appTitle}>QuizWhiz</Text>
+            <TouchableOpacity style={styles.createButton}>
+              <Plus size={20} color="#FFFFFF" />
+              <Text style={styles.createButtonText}>Create Set</Text>
+            </TouchableOpacity>
           </View>
+        </View>
 
+        <View style={styles.content}>
           <View style={styles.searchContainer}>
             <View style={styles.searchInputWrapper}>
               <TextInput
@@ -134,7 +118,7 @@ const HomeScreen = () => {
               ))}
             </View>
           </View>
-        </ScrollView>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -143,16 +127,15 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
+    minHeight: '100vh',
   },
   container: {
     flex: 1,
     paddingTop: Platform.OS === "android" ? STATUSBAR_HEIGHT : 0,
   },
-  scrollView: {
+  content: {
     flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
+    paddingBottom: 20, // Add padding at the bottom for better scrolling
   },
   header: {
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
@@ -190,6 +173,7 @@ const styles = StyleSheet.create({
   },
   searchInputWrapper: {
     marginBottom: 8,
+    position: 'relative',
   },
   searchInput: {
     width: "100%",
@@ -200,6 +184,7 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
     fontSize: 14,
+    color: 'white',
   },
   searchIconContainer: {
     position: "absolute",
@@ -218,6 +203,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
+    color: 'white',
   },
   studySetsGrid: {
     gap: 12,
@@ -232,6 +218,7 @@ const styles = StyleSheet.create({
   studySetTitle: {
     fontSize: 16,
     fontWeight: "600",
+    color: 'white',
     marginBottom: 6,
   },
   cardCount: {
@@ -262,7 +249,7 @@ const styles = StyleSheet.create({
   categoriesGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
     gap: 8,
   },
   categoryCard: {
@@ -276,6 +263,7 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 14,
     fontWeight: "600",
+    color: 'white',
     marginBottom: 4,
   },
   categoryCount: {

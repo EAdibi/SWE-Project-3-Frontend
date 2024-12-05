@@ -271,20 +271,6 @@ const Admin = () => {
     }
   };
 
-  const handleDeleteConfirmation = () => {
-    Alert.alert("Delete User", "Are you sure you want to delete this user?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: handleDeleteUser,
-      },
-    ]);
-  };
-
   const handleOpenUpdateModal = () => {
     setUpdateForm({
       username: selectedUser?.username || "",
@@ -343,7 +329,7 @@ const Admin = () => {
           onClose={() => setModalVisible(false)}
           selectedUser={selectedUser}
           onUpdate={handleOpenUpdateModal}
-          onDelete={handleDeleteConfirmation} 
+          onDelete={handleDeleteUser} 
         />
 
         <UpdateModal
