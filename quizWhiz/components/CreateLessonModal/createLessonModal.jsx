@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useFocusEffect } from "expo-router";
 import AlertDialog from '../Alert/alert';
 
 const BACKEND_URL = "https://quizwhiz-backend-679124120937.us-central1.run.app";
 
-const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
+const CreateLessonModal = ({ visible, onClose, onLessonCreated, Action, initialValues }) => {
   const [lessonForm, setLessonForm] = useState({
     title: '',
     description: '',
@@ -30,6 +29,26 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
     message: '',
   });
 
+  // Update form when initialValues changes
+  useEffect(() => {
+    if (initialValues && Action === 'Update') {
+      setLessonForm({
+        title: initialValues.title || '',
+        description: initialValues.description || '',
+        category: initialValues.category || '',
+        is_public: initialValues.is_public || false
+      });
+    } else {
+      // Reset form when modal is used for creation
+      setLessonForm({
+        title: '',
+        description: '',
+        category: '',
+        is_public: false
+      });
+    }
+  }, [initialValues, visible]);
+
   const showAlert = (title, message) => {
     setAlertConfig({
       visible: true,
@@ -38,7 +57,7 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
     });
   };
 
-  const handleCreateLesson = async () => {
+  const handleSubmit = async () => {
     try {
       // Validate required fields
       if (!lessonForm.title || !lessonForm.description || !lessonForm.category) {
@@ -49,16 +68,34 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
       const accessToken = await AsyncStorage.getItem('accessToken');
       if (!accessToken) throw new Error('No access token found');
 
-      const response = await axios.post(
-        `${BACKEND_URL}/lessons/new`,
-        lessonForm,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
+      let response;
+      if (Action === 'Create') {
+        response = await axios.post(
+          `${BACKEND_URL}/lessons/new`,
+          lessonForm,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+      } else {
+        // Update existing lesson
+        response = await axios.patch(
+          `${BACKEND_URL}/lessons/update`,
+          {
+            lesson_id: initialValues.id,
+            ...lessonForm
           },
-        }
-      );
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+      }
 
       // Clear form
       setLessonForm({
@@ -68,17 +105,17 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
         is_public: false
       });
       
-      // Notify parent component about the new lesson
+      // Notify parent component about the new/updated lesson
       if (onLessonCreated) {
         onLessonCreated(response.data);
       }
       
       onClose();
-      showAlert('Success', 'Lesson created successfully!');
+      showAlert('Success', `Lesson ${Action.toLowerCase()}d successfully!`);
     } catch (err) {
       showAlert(
         'Error',
-        err.response?.data?.error || 'Failed to create lesson'
+        err.response?.data?.error || `Failed to ${Action.toLowerCase()} lesson`
       );
     }
   };
@@ -88,12 +125,12 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
       <Modal
         transparent
         visible={visible}
-        onRequestClose={onClose}
+        onRequestClose={onClose}  
         animationType="slide"
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Create New Lesson</Text>
+            <Text style={styles.modalTitle}>{Action} Lesson</Text>
 
             <TextInput
               style={styles.input}
@@ -146,7 +183,7 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
 
               <TouchableOpacity
                 style={[styles.modalButton, styles.createButton]}
-                onPress={handleCreateLesson}
+                onPress={handleSubmit}
               >
                 <LinearGradient
                   colors={['#4158D0', '#C850C0']}
@@ -154,7 +191,7 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated }) => {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 >
-                  <Text style={styles.buttonText}>Create</Text>
+                  <Text style={styles.buttonText}>{Action}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>

@@ -404,6 +404,7 @@ const PublicLessons = () => {
           await Promise.all([fetchPublicLessons(), fetchPersonalLessons()]);
           setCreateModalVisible(false);
         }}
+        Action={"Create"}
       />
     </View>
   );
