@@ -8,20 +8,34 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { Eye, EyeOff, Info } from "lucide-react-native";
 
 const Login = () => {
   const router = useRouter();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const windowWidth = Dimensions.get("window").width;
   const isMobile = windowWidth < 768;
+
+  useFocusEffect(
+    useCallback(() => {
+      setUsername("");
+      setPassword("");
+      setShowPassword(false);
+      setShowTooltip(false);
+    }, [])
+  );
 
   const styles = StyleSheet.create({
     signUpContainer: {
@@ -149,6 +163,73 @@ const Login = () => {
       borderColor: "#dc2626",
       borderWidth: 1.5,
     },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      position: 'relative',
+    },
+    tooltipContainer: {
+      position: 'absolute',
+      left: '100%',
+      marginLeft: 8,
+      backgroundColor: '#1e293b',
+      padding: 8,
+      borderRadius: 6,
+      width: 200,
+      ...Platform.select({
+        web: {
+          display: 'none',
+          ':hover': {
+            display: 'flex',
+          },
+        },
+      }),
+    },
+    tooltipText: {
+      color: '#ffffff',
+      fontSize: 14,
+    },
+    tooltipWrapper: {
+      position: 'relative',
+      ...Platform.select({
+        web: {
+          cursor: 'pointer',
+        },
+      }),
+    },
+    visibleTooltip: {
+      ...Platform.select({
+        web: {
+          display: 'flex',
+        },
+      }),
+    },
+    passwordInput: {
+      width: "100%",
+      height: 48,
+      borderWidth: 1,
+      borderColor: "#e2e8f0",
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      backgroundColor: "#F8FAFC",
+      fontSize: 16,
+      color: "#1e293b",
+      boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.05)",
+      elevation: 1,
+    },
+    passwordContainer: {
+      position: 'relative',
+      width: '100%',
+    },
+    visibilityIcon: {
+      position: 'absolute',
+      right: 16,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      cursor: 'pointer',
+      zIndex: 1,
+    },
   });
 
   const errorStyles = StyleSheet.create({
@@ -195,15 +276,13 @@ const Login = () => {
       isValid = false;
     }
 
-    // if (!password.trim()) {
-    //   tempErrors.password = "Password is required";
-    //   isValid = false;
-    // } 
-    
-    // else if (password.length < 8) {
-    //   tempErrors.password = "Password must be at least 8 characters";
-    //   isValid = false;
-    // }
+    if (!password.trim()) {
+      tempErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 8) {
+      tempErrors.password = "Password must be at least 8 characters";
+      isValid = false;
+    }
 
     setErrors(tempErrors);
     return isValid;
@@ -253,7 +332,27 @@ const Login = () => {
       <Text style={styles.title}>Welcome Back</Text>
       <View as="form" onSubmit={handleSubmit} style={{ width: "100%" }}>
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Username</Text>
+          <View style={styles.labelContainer}>
+            <Text style={styles.label}>Username</Text>
+            <View style={styles.tooltipWrapper}>
+              <Pressable
+                onPress={() => setShowTooltip(!showTooltip)}
+                onHoverIn={() => Platform.OS === "web" && setShowTooltip(true)}
+                onHoverOut={() =>
+                  Platform.OS === "web" && setShowTooltip(false)
+                }
+              >
+                <Info size={16} stroke="#0EA5E9" />
+              </Pressable>
+              {showTooltip && (
+                <View style={[styles.tooltipContainer, styles.visibleTooltip]}>
+                  <Text style={styles.tooltipText}>
+                    Username should be FirstNameLastName
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
           <TextInput
             style={[styles.input, errors.username && errorStyles.inputError]}
             placeholder="Enter your username"
@@ -264,7 +363,7 @@ const Login = () => {
             }}
             autoCapitalize="none"
             editable={!isLoading}
-            onSubmitEditing={handleSubmit} // Handle Enter on this input
+            onSubmitEditing={handleSubmit}
           />
           {errors.username && (
             <Text style={errorStyles.errorText}>{errors.username}</Text>
@@ -272,18 +371,33 @@ const Login = () => {
         </View>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={[styles.input, errors.password && errorStyles.inputError]}
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setErrors((prev) => ({ ...prev, password: "", general: "" }));
-            }}
-            secureTextEntry
-            editable={!isLoading}
-            onSubmitEditing={handleSubmit} // Handle Enter on this input
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[
+                styles.passwordInput,
+                errors.password && errorStyles.inputError,
+              ]}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setErrors((prev) => ({ ...prev, password: "", general: "" }));
+              }}
+              secureTextEntry={!showPassword}
+              editable={!isLoading}
+              onSubmitEditing={handleSubmit}
+            />
+            <TouchableOpacity
+              style={styles.visibilityIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <Eye size={20} stroke="#94A3B8" />
+              ) : (
+                <EyeOff size={20} stroke="#94A3B8" />
+              )}
+            </TouchableOpacity>
+          </View>
           {errors.password && (
             <Text style={errorStyles.errorText}>{errors.password}</Text>
           )}

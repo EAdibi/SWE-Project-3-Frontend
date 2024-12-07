@@ -432,7 +432,7 @@ const PublicFlashCards = () => {
           </GestureDetector>
 
           <Text style={styles.instruction}>
-            Tap card to flip • Swipe or use arrow keys to navigate
+            Enter Space-Bar or Tap card to flip • Swipe or use arrow keys to navigate
           </Text>
 
           <View style={styles.progressBar}>
