@@ -18,7 +18,8 @@ import CreateLessonModal from "../CreateLessonModal/createLessonModal";
 const { width } = Dimensions.get("window");
 
 const PublicLessons = () => {
-  const [lessons, setLessons] = useState([]);
+  const [publicLessons, setPublicLessons] = useState([]);
+  const [personalLessons, setPersonalLessons] = useState([]);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [flashcards, setFlashcards] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -31,6 +32,7 @@ const PublicLessons = () => {
   useFocusEffect(
     useCallback(() => {
       fetchPublicLessons();
+      fetchPersonalLessons();
     }, [])
   );
 
@@ -40,11 +42,10 @@ const PublicLessons = () => {
     try {
       const token = await AsyncStorage.getItem("accessToken");
       if (!token) {
-        console.log("No access token found");
         return { username: "Unknown User" };
       }
 
-      const response = await axios.get(`${baseURL}/users/${userId}`, {
+      const response = await axios.get(`${baseURL}/users/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -91,8 +92,8 @@ const PublicLessons = () => {
       setLoading(true);
       setError(null);
 
-      const [currentUserId, token] = await Promise.all([
-        AsyncStorage.getItem("userId"),
+      const [userDataString, token] = await Promise.all([
+        AsyncStorage.getItem("userData"),
         AsyncStorage.getItem("accessToken"),
       ]);
 
@@ -100,27 +101,103 @@ const PublicLessons = () => {
         throw new Error("No access token available");
       }
 
+      const userData = JSON.parse(userDataString);
+
       const response = await axios.get(`${baseURL}/lessons/public`, {
         headers: { Authorization: `Bearer ${token}` },
+        validateStatus: function (status) {
+          return status < 500;
+        },
       });
+
+      if (response.status !== 200) {
+        throw new Error(
+          response.data?.message || "Failed to fetch public lessons"
+        );
+      }
 
       const lessonsWithUsers = await Promise.all(
         response.data.map(async (lesson) => {
-          const userData = await fetchUserData(lesson.created_by);
+          const lessonUserData = await fetchUserData(lesson.created_by);
           return {
             ...lesson,
-            creatorName: userData.username || "Unknown User",
-            isCurrentUser: lesson.created_by.toString() === currentUserId,
+            creatorName: lessonUserData.username || "Unknown User",
+            isCurrentUser:
+              userData &&
+              lesson.created_by.toString() === userData.id.toString(),
           };
         })
       );
 
-      setLessons(lessonsWithUsers);
+      setPublicLessons(lessonsWithUsers);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch lessons");
-      console.error("Error fetching lessons:", err);
+      console.error("Error fetching public lessons:", err);
+      setError(err.response?.data?.message || "Failed to fetch public lessons");
+      setPublicLessons([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPersonalLessons = async () => {
+    try {
+      const [userDataString, token] = await Promise.all([
+        AsyncStorage.getItem("userData"),
+        AsyncStorage.getItem("accessToken"),
+      ]);
+
+      if (!token || !userDataString) {
+        setPersonalLessons([]);
+        return;
+      }
+
+      const userData = JSON.parse(userDataString);
+
+      if (!userData || !userData.id) {
+        setPersonalLessons([]);
+        return;
+      }
+
+      const response = await axios.get(
+        `${baseURL}/lessons/user/${userData.id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          validateStatus: function (status) {
+            return status < 500;
+          },
+        }
+      );
+
+      if (response.status === 404) {
+        setPersonalLessons([]);
+        return;
+      }
+
+      if (response.status !== 200) {
+        throw new Error(
+          response.data?.message || "Failed to fetch personal lessons"
+        );
+      }
+
+      const lessonsWithUsers = await Promise.all(
+        response.data.map(async (lesson) => {
+          const lessonUserData = await fetchUserData(lesson.created_by);
+          return {
+            ...lesson,
+            creatorName: lessonUserData.username || "Unknown User",
+            isCurrentUser:
+              lesson.created_by.toString() === userData.id.toString(),
+          };
+        })
+      );
+
+      setPersonalLessons(lessonsWithUsers);
+    } catch (err) {
+      console.error("Error fetching personal lessons:", err);
+      if (err.response?.status !== 404) {
+        setError("Failed to fetch personal lessons");
+      }
+      setPersonalLessons([]);
     }
   };
 
@@ -192,6 +269,59 @@ const PublicLessons = () => {
     </TouchableOpacity>
   );
 
+  const renderLessonsSection = (title, lessons) => {
+    if (loading) {
+      return (
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>{title}</Text>
+          <ActivityIndicator
+            size="small"
+            color="#fff"
+            style={styles.sectionLoader}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {lessons.length > 0 ? (
+          <View style={styles.cardsGrid}>
+            {lessons.map((item) => renderLessonCard(item))}
+          </View>
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <Ionicons
+              name={
+                title === "Personal Lessons"
+                  ? "document-outline"
+                  : "globe-outline"
+              }
+              size={48}
+              color="#fff"
+            />
+            <Text style={styles.noLessonsText}>
+              {title === "Personal Lessons"
+                ? "You haven't created any lessons yet"
+                : "No public lessons available"}
+            </Text>
+            {title === "Personal Lessons" && (
+              <TouchableOpacity
+                style={styles.createEmptyButton}
+                onPress={() => setCreateModalVisible(true)}
+              >
+                <Text style={styles.createEmptyButtonText}>
+                  Create Your First Lesson
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -207,7 +337,9 @@ const PublicLessons = () => {
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
-            onPress={fetchPublicLessons}
+            onPress={() => {
+              Promise.all([fetchPublicLessons(), fetchPersonalLessons()]);
+            }}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
@@ -215,22 +347,14 @@ const PublicLessons = () => {
       );
     }
 
-    if (lessons.length === 0) {
-      return (
-        <View style={[styles.centerContainer, styles.fullHeight]}>
-          <Text style={styles.noLessonsText}>No public lessons available</Text>
-        </View>
-      );
-    }
-
     return (
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={{ paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.cardsGrid}>
-          {lessons.map((item) => renderLessonCard(item))}
-        </View>
+        {renderLessonsSection("Public Lessons", publicLessons)}
+        {renderLessonsSection("Personal Lessons", personalLessons)}
       </ScrollView>
     );
   };
@@ -244,7 +368,7 @@ const PublicLessons = () => {
         style={[styles.mainContainer, styles.fullHeight]}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Public Lessons</Text>
+          <Text style={styles.headerTitle}>Lessons</Text>
           <TouchableOpacity
             style={styles.createButton}
             onPress={() => setCreateModalVisible(true)}
@@ -257,37 +381,27 @@ const PublicLessons = () => {
         {renderContent()}
       </LinearGradient>
 
-      {/* {selectedLessonId && flashcards.length > 0 && (
-        <View style={styles.flashcardsContainer}>
-          <Text style={styles.flashcardsTitle}>
-            Flashcards for Lesson {selectedLessonId}
-          </Text>
-          <ScrollView>
-            {flashcards.map((item) => (
-              <View key={item.id} style={styles.flashcard}>
-                <Text style={styles.flashcardText}>{item.front}</Text>
-                <Text style={styles.flashcardText}>{item.back}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      )} */}
-
       <CreateLessonModal
         visible={createModalVisible}
         onClose={() => setCreateModalVisible(false)}
         onLessonCreated={async (newLesson) => {
           const userData = await fetchUserData(newLesson.created_by);
+          const lessonWithUser = {
+            ...newLesson,
+            creatorName: userData.username || "You",
+            isCurrentUser: true,
+          };
 
-          setLessons((prevLessons) => [
-            {
-              ...newLesson,
-              creatorName: userData.username || "You",
-              isCurrentUser: true,
-            },
-            ...prevLessons,
-          ]);
-          await fetchPublicLessons();
+          if (newLesson.isPublic) {
+            setPublicLessons((prevLessons) => [lessonWithUser, ...prevLessons]);
+          } else {
+            setPersonalLessons((prevLessons) => [
+              lessonWithUser,
+              ...prevLessons,
+            ]);
+          }
+
+          await Promise.all([fetchPublicLessons(), fetchPersonalLessons()]);
           setCreateModalVisible(false);
         }}
       />
@@ -305,8 +419,7 @@ const styles = StyleSheet.create({
     minHeight: "100%",
   },
   fullHeight: {
-    height: "100%",
-    minHeight: 900,
+    flex: 1,
   },
   header: {
     flexDirection: "row",
@@ -333,6 +446,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    paddingBottom: 40,
   },
   cardsGrid: {
     flexDirection: "row",
@@ -460,6 +574,45 @@ const styles = StyleSheet.create({
   flashcardText: {
     fontSize: 14,
     marginBottom: 5,
+  },
+  sectionContainer: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 15,
+  },
+  sectionLoader: {
+    marginTop: 20,
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 15,
+    marginTop: 10,
+  },
+  createEmptyButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginTop: 15,
+  },
+  createEmptyButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  noLessonsText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 10,
+    opacity: 0.9,
   },
 });
 
