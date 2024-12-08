@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CreateLessonModal from "../CreateLessonModal/createLessonModal";
@@ -35,7 +36,9 @@ const LessonActionModal = ({
     <Pressable style={styles.modalOverlay} onPress={onClose}>
       <View style={styles.modalContainer}>
         <Text style={styles.modalTitle}>{selectedLesson?.title}</Text>
-        <Text style={styles.modalDescription}>{selectedLesson?.description}</Text>
+        <Text style={styles.modalDescription}>
+          {selectedLesson?.description}
+        </Text>
         <View style={styles.modalButtons}>
           <TouchableOpacity
             style={[styles.modalButton, styles.updateModalButton]}
@@ -158,8 +161,8 @@ const ManageYourLessons = () => {
           Authorization: `Bearer ${token}`,
         },
         data: {
-          lesson_id: selectedLesson.id
-        }
+          lesson_id: selectedLesson.id,
+        },
       });
 
       setLessons(lessons.filter((lesson) => lesson.id !== selectedLesson.id));
@@ -177,12 +180,19 @@ const ManageYourLessons = () => {
   };
 
   const renderItem = ({ item }) => (
-    <Pressable style={styles.lessonCard} onPress={() => handleLessonAction(item)}>
+    <Pressable
+      style={styles.lessonCard}
+      onPress={() => handleLessonAction(item)}
+    >
       <View style={styles.lessonContent}>
         <Text style={styles.titleText} numberOfLines={1} ellipsizeMode="tail">
           {item.title}
         </Text>
-        <Text style={styles.descriptionText} numberOfLines={2} ellipsizeMode="tail">
+        <Text
+          style={styles.descriptionText}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {item.description}
         </Text>
       </View>
@@ -211,6 +221,21 @@ const ManageYourLessons = () => {
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={fetchLessons}>
               <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : lessons.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <Ionicons name="document-outline" size={48} color="#fff" />
+            <Text style={styles.noLessonsText}>
+              You haven't created any lessons yet
+            </Text>
+            <TouchableOpacity
+              style={styles.createEmptyButton}
+              onPress={() => setUpdateModalVisible(true)}
+            >
+              <Text style={styles.createEmptyButtonText}>
+                Create Your First Lesson
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -396,6 +421,33 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 15,
+    marginTop: 10,
+  },
+  createEmptyButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginTop: 15,
+  },
+  createEmptyButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  noLessonsText: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 10,
+    opacity: 0.9,
   },
 });
 

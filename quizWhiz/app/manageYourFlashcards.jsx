@@ -1,10 +1,10 @@
-import PublicLessons from "../components/LessonsDetails/lessonsDetails";
+import ManageYourFlashcards from "../components/ManageFlashcards/manageFlashcards"
 import { View } from "react-native";
 
 const Page = () => {
   return (
     <View>
-      <PublicLessons />
+      <ManageYourFlashcards />
     </View>
   );
 }
