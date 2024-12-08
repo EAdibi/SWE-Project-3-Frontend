@@ -9,47 +9,88 @@ import {
   Dimensions,
   StatusBar as RNStatusBar,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import axios from "axios";
 import { LinearGradient } from "expo-linear-gradient";
+import FlashCardDetails from "../FlashcardDetails/FlashcardDetails";
 import { ArrowRight, BookOpen, Brain, Plus, Search } from "lucide-react-native";
 
 const windowWidth = Dimensions.get("window").width;
 const STATUSBAR_HEIGHT = RNStatusBar.currentHeight || 0;
 
 const HomeScreen = () => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [lessons, setLessons] = useState([]);
+  const [publicLessons, setPublicLessons] = useState([]);
+  const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
+      fetchPublicLessons();
       fetchTopCategories();
     }, [])
   );
+
+  const handleCloseFlashCardsDetails = useCallback(() => {
+    setSelectedLessonId(null);
+    router.replace("/homepage");
+  }, [router]);
 
   useEffect(() => {
     if (searchQuery.length > 0) {
       handleSearch();
     } else {
-      setLessons(recentStudySets);
+      setLessons(publicLessons);
     }
-  }, [searchQuery]);
+  }, [searchQuery, publicLessons]);
 
   const handleSearch = async () => {
     try {
       const response = await axios.get(
         `https://quizwhiz-backend-679124120937.us-central1.run.app/lessons/keywords/${searchQuery}`
       );
-      console.log(response.data);
-      const sortedLessons = [...response.data].sort((a, b) => 
-        new Date(b.updated_at) - new Date(a.updated_at)
+      const sortedLessons = [...response.data].sort(
+        (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
       );
       setLessons(sortedLessons);
     } catch (error) {
       setError(error.message || "Failed to Search");
+      setLessons(publicLessons);
+    }
+  };
+
+  const handleLessonPress = async (lessonId) => {
+    if (!lessonId) return;
+    setSelectedLessonId(lessonId);
+    router.push(`/homepage/#${lessonId}`);
+  };
+
+  const fetchPublicLessons = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("No access token available");
+      }
+
+      const response = await axios.get(
+        "https://quizwhiz-backend-679124120937.us-central1.run.app/lessons/public",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const sortedLessons = [...response.data].sort(
+        (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+      );
+      setPublicLessons(sortedLessons);
+      if (searchQuery.length === 0) {
+        setLessons(sortedLessons);
+      }
+    } catch (error) {
+      setError(error.message || "Failed to fetch lessons");
     }
   };
 
@@ -69,38 +110,16 @@ const HomeScreen = () => {
     }
   };
 
-  const recentStudySets = [
-    {
-      id: 1,
-      title: "JavaScript Basics",
-      description: "Learn the fundamentals of JavaScript",
-      category: "Programming",
-      created_at: "2024-12-01T10:00:00.000000Z",
-      updated_at: "2024-12-06T14:00:00.000000Z",
-      is_public: true,
-      created_by: 101,
-    },
-    {
-      id: 2,
-      title: "React Fundamentals",
-      description: "Master the basics of React",
-      category: "Frontend Development",
-      created_at: "2024-12-02T11:30:00.000000Z",
-      updated_at: "2024-12-05T15:00:00.000000Z",
-      is_public: false,
-      created_by: 102,
-    },
-    {
-      id: 3,
-      title: "Python Data Structures",
-      description: "Deep dive into Python's data structures",
-      category: "Programming",
-      created_at: "2024-12-03T09:45:00.000000Z",
-      updated_at: "2024-12-05T16:20:00.000000Z",
-      is_public: true,
-      created_by: 103,
-    },
-  ];
+  if (selectedLessonId) {
+    return (
+      <FlashCardDetails
+        lessonId={selectedLessonId}
+        onBack={handleCloseFlashCardsDetails}
+        previousRoute={"homepage"}
+      />
+    );
+  }
+
   const renderStudySet = (set) => (
     <TouchableOpacity
       key={`study-set-${set.id}`}
@@ -113,7 +132,7 @@ const HomeScreen = () => {
         <Text style={styles.lastStudied}>
           Updated {new Date(set.updated_at).toLocaleDateString()}
         </Text>
-        <TouchableOpacity style={styles.studyButton} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.studyButton} onPress={() => handleLessonPress(set.id)} activeOpacity={0.7}>
           <Text style={styles.studyButtonText}>Study</Text>
           <ArrowRight size={16} color="#2563EB" />
         </TouchableOpacity>
@@ -169,11 +188,7 @@ const HomeScreen = () => {
             </View>
 
             <View style={styles.studySetsGrid}>
-              {lessons.length === 0
-                ? 
-                  recentStudySets.map(renderStudySet)
-                : 
-                  lessons.slice(0, 5).map(renderStudySet)}
+              {lessons.map(renderStudySet)}
             </View>
           </View>
 

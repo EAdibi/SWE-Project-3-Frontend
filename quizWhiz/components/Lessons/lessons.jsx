@@ -185,7 +185,9 @@ const PublicLessons = () => {
         );
       }
 
-      const privateLeasons = response.data.filter(lesson => !lesson.is_public);
+      const privateLeasons = response.data.filter(
+        (lesson) => !lesson.is_public
+      );
 
       const lessonsWithUsers = await Promise.all(
         privateLeasons.map(async (lesson) => {
@@ -215,11 +217,6 @@ const PublicLessons = () => {
     router.push(`/lessons/#${lessonId}`);
   };
 
-  const handleCloseFlashcards = () => {
-    setSelectedLessonId(null);
-    router.replace('/lessons');
-  };
-
   const getFormattedDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -230,7 +227,13 @@ const PublicLessons = () => {
   };
 
   if (selectedLessonId) {
-    return <FlashCardDetails lessonId={selectedLessonId} onBack={handleCloseFlashCardsDetails} previousRoute={"lessons"}/>;
+    return (
+      <FlashCardDetails
+        lessonId={selectedLessonId}
+        onBack={handleCloseFlashCardsDetails}
+        previousRoute={"lessons"}
+      />
+    );
   }
 
   const renderLessonCard = (item) => (
