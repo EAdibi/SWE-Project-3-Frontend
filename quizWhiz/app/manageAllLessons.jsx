@@ -1,10 +1,10 @@
-import PublicLessons from "../components/LessonsDetails/lessonsDetails";
+import ManageAllLessons from "../components/ManageAllLessons/manageAllLessons";
 import { View } from "react-native";
 
 const Page = () => {
   return (
     <View>
-      <PublicLessons />
+      <ManageAllLessons />
     </View>
   );
 }

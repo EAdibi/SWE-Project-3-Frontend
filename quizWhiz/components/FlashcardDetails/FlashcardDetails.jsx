@@ -4,10 +4,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react-native";
 import {
   GestureHandlerRootView,
   GestureDetector,
@@ -19,7 +21,7 @@ const MAX_RETRIES = 3;
 
 const Card = memo(({ isFlipped, currentCard, onFlip, styles }) => (
   <TouchableOpacity style={[styles.cardWrapper]} onPress={onFlip}>
-    <View style={[styles.card, styles.cardFront]}>
+    <View style={[styles.card]}>
       <Text style={styles.cardTitle}>{isFlipped ? "Answer" : "Question"}</Text>
       <Text style={styles.cardText}>
         {isFlipped ? currentCard.back_text : currentCard.front_text}
@@ -28,35 +30,9 @@ const Card = memo(({ isFlipped, currentCard, onFlip, styles }) => (
   </TouchableOpacity>
 ));
 
-class FlashCardsErrorBoundary extends React.Component {
-  state = { hasError: false };
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("FlashCards Error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <View style={styles.container}>
-          <Text style={styles.errorText}>
-            Something went wrong. Please try reloading the app.
-          </Text>
-        </View>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-const PublicFlashCards = () => {
+const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
+  const router = useRouter();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flashCards, setFlashCards] = useState([]);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -64,77 +40,32 @@ const PublicFlashCards = () => {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const navigateCards = useCallback(
-    (direction) => {
-      if (direction === "next" && currentIndex < flashCards.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-        setIsFlipped(false);
-      } else if (direction === "prev" && currentIndex > 0) {
-        setCurrentIndex(currentIndex - 1);
-        setIsFlipped(false);
-      }
-    },
-    [currentIndex, flashCards.length]
-  );
-
-  const fetchFlashCards = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await axios.get(
-        "https://quizwhiz-backend-679124120937.us-central1.run.app/flashcards/public/"
-      );
-      console.log(response.data);
-      setFlashCards(response.data);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching flashcards:", error);
-      setError(error.message || "Failed to fetch flashcards");
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFlashCards();
-  }, []);
-
-  const flipCard = useCallback(() => {
-    setIsFlipped(!isFlipped);
-  }, [isFlipped]);
-
-  const swipeGesture = Gesture.Pan().onEnd((event) => {
-    const SWIPE_THRESHOLD = 50;
-    if (event.translationX > SWIPE_THRESHOLD) {
-      navigateCards("prev");
-    } else if (event.translationX < -SWIPE_THRESHOLD) {
-      navigateCards("next");
-    }
-  });
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "ArrowLeft") {
-        navigateCards("prev");
-      } else if (event.key === "ArrowRight") {
-        navigateCards("next");
-      } else if (event.key === " ") {
-        flipCard();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigateCards, flipCard]);
-
   const styles = StyleSheet.create({
     mainContainer: {
       flex: 1,
       width: "100%",
       minHeight: screenHeight - 60,
     },
-    overlay: {
-      flex: 1,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+    header: {
+      width: "100%",
+      flexDirection: "column",
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 10,
+    },
+    backButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      padding: 8,
+      borderRadius: 8,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+    },
+    backButtonText: {
+      color: "#fff",
+      marginLeft: 8,
+      fontSize: 16,
+      fontWeight: "500",
     },
     heading: {
       fontSize: 28,
@@ -166,28 +97,6 @@ const PublicFlashCards = () => {
       elevation: 5,
       borderWidth: 1,
       borderColor: "rgba(255, 255, 255, 0.2)",
-    },
-    counter: {
-      fontSize: 16,
-      marginBottom: 8,
-      color: "#444",
-    },
-    difficulty: {
-      fontSize: 14,
-      marginBottom: 4,
-      color: "#666",
-    },
-    difficultyText: {
-      fontWeight: "bold",
-      color: "#333",
-    },
-    category: {
-      fontSize: 14,
-      color: "#666",
-    },
-    categoryText: {
-      fontWeight: "bold",
-      color: "#333",
     },
     cardContainer: {
       flexDirection: "row",
@@ -222,10 +131,7 @@ const PublicFlashCards = () => {
       alignItems: "center",
       justifyContent: "center",
       shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
+      shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,
       shadowRadius: 8,
       elevation: 5,
@@ -243,6 +149,26 @@ const PublicFlashCards = () => {
       textAlign: "center",
       color: "#333",
       lineHeight: 26,
+    },
+    counter: {
+      fontSize: 16,
+      marginBottom: 8,
+      color: "#444",
+      fontWeight: "bold",
+    },
+    lessonInfo: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: "#666",
+    },
+    lessonText: {
+      fontWeight: "bold",
+      color: "#333",
+    },
+    dateInfo: {
+      fontSize: 14,
+      color: "#666",
+      fontStyle: "italic",
     },
     instruction: {
       marginTop: 20,
@@ -267,14 +193,15 @@ const PublicFlashCards = () => {
       backgroundColor: "#4CAF50",
       borderRadius: 4,
     },
-    loadingText: {
-      fontSize: 18,
-      color: "#666",
-      textAlign: "center",
+    errorContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
     },
     errorText: {
-      fontSize: 16,
-      color: "#ff0000",
+      fontSize: 36,
+      color: "white",
       textAlign: "center",
       marginBottom: 20,
     },
@@ -289,88 +216,150 @@ const PublicFlashCards = () => {
       fontSize: 16,
       textAlign: "center",
     },
-    headerInfo: {
-      alignItems: "center",
-      marginBottom: 20,
-      backgroundColor: "rgba(255, 255, 255, 0.95)",
-      padding: 15,
-      borderRadius: 15,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 5,
-      borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.2)",
-    },
-    counter: {
-      fontSize: 16,
-      marginBottom: 8,
-      color: "#444",
-      fontWeight: "bold",
-    },
-    lessonInfo: {
-      fontSize: 14,
-      marginBottom: 4,
-      color: "#666",
-    },
-    lessonText: {
-      fontWeight: "bold",
-      color: "#333",
-    },
-    dateInfo: {
-      fontSize: 14,
-      color: "#666",
-      fontStyle: "italic",
-    },
   });
+
+  const handleGoBack = useCallback(() => {
+    if (onBack) {
+      onBack();
+    }
+    if(previousRoute == "lessons"){
+      router.push("/lessons");
+    }
+  }, [onBack, router]);
+
+  const navigateCards = useCallback(
+    (direction) => {
+      if (direction === "next" && currentIndex < flashCards.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+        setIsFlipped(false);
+      } else if (direction === "prev" && currentIndex > 0) {
+        setCurrentIndex(currentIndex - 1);
+        setIsFlipped(false);
+      }
+    },
+    [currentIndex, flashCards.length]
+  );
+
+  const fetchFlashCards = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `https://quizwhiz-backend-679124120937.us-central1.run.app/flashcards/by-lesson/${lessonId}`
+      );
+      console.log(response.data);
+      setFlashCards(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching flashcards:", error);
+      setError(error.message || "Failed to fetch flashcards");
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (lessonId) {
+      fetchFlashCards();
+    }
+  }, [lessonId]);
+
+  const flipCard = useCallback(() => {
+    setIsFlipped(!isFlipped);
+  }, [isFlipped]);
+
+  const swipeGesture = Gesture.Pan().onEnd((event) => {
+    const SWIPE_THRESHOLD = 50;
+    if (event.translationX > SWIPE_THRESHOLD) {
+      navigateCards("prev");
+    } else if (event.translationX < -SWIPE_THRESHOLD) {
+      navigateCards("next");
+    }
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "ArrowLeft") {
+        navigateCards("prev");
+      } else if (event.key === "ArrowRight") {
+        navigateCards("next");
+      } else if (event.key === " ") {
+        flipCard();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [navigateCards, flipCard]);
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading flashcards...</Text>
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <LinearGradient
+          colors={["#4158D0", "#C850C0", "#FFCC70"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.mainContainer}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleGoBack}
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.errorContainer}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.messageText}>Loading flashcards...</Text>
+          </View>
+        </LinearGradient>
+      </GestureHandlerRootView>
     );
   }
 
-  if (error) {
+  if (error || !flashCards.length) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: {error}</Text>
-        {retryCount < MAX_RETRIES && (
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => {
-              setRetryCount((prev) => prev + 1);
-              fetchFlashCards();
-            }}
-          >
-            <Text style={styles.retryButtonText}>
-              Retry ({MAX_RETRIES - retryCount} attempts remaining)
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <LinearGradient
+          colors={["#4158D0", "#C850C0", "#FFCC70"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.mainContainer}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={handleGoBack}
+              style={styles.backButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>
+              {error || "No flashcards available for this lesson"}
             </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            {error && retryCount < MAX_RETRIES && (
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={() => {
+                  setRetryCount((prev) => prev + 1);
+                  fetchFlashCards();
+                }}
+              >
+                <Text style={styles.retryButtonText}>
+                  Retry ({MAX_RETRIES - retryCount} attempts remaining)
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </LinearGradient>
+      </GestureHandlerRootView>
     );
   }
 
-  if (flashCards.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>No flashcards available</Text>
-      </View>
-    );
-  }
-
-  const currentCard = flashCards[currentIndex] || null;
-
-  if (!currentCard) {
-    return (
-      <View style={styles.container}> 
-        <Text style={styles.errorText}>Error: Could not load card</Text>
-      </View>
-    );
-  }
+  const currentCard = flashCards[currentIndex];
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -380,16 +369,20 @@ const PublicFlashCards = () => {
         end={{ x: 1, y: 1 }}
         style={styles.mainContainer}
       >
-        <Text style={styles.heading}>Flashcards</Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={handleGoBack}
+            style={styles.backButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <ArrowLeft size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.container}>
           <View style={styles.headerInfo}>
             <Text style={styles.counter}>
               Card {currentIndex + 1} of {flashCards.length}
-            </Text>
-            <Text style={styles.lessonInfo}>
-              Lesson:{" "}
-              <Text style={styles.lessonText}>{currentCard.lesson}</Text>
             </Text>
             <Text style={styles.dateInfo}>
               Updated: {new Date(currentCard.updated_at).toLocaleDateString()}
@@ -399,7 +392,10 @@ const PublicFlashCards = () => {
           <GestureDetector gesture={swipeGesture}>
             <View style={styles.cardContainer}>
               <TouchableOpacity
-                style={styles.navigationButton}
+                style={[
+                  styles.navigationButton,
+                  currentIndex === 0 && { opacity: 0.5 },
+                ]}
                 onPress={() => navigateCards("prev")}
                 disabled={currentIndex === 0}
               >
@@ -417,7 +413,10 @@ const PublicFlashCards = () => {
               />
 
               <TouchableOpacity
-                style={styles.navigationButton}
+                style={[
+                  styles.navigationButton,
+                  currentIndex === flashCards.length - 1 && { opacity: 0.5 },
+                ]}
                 onPress={() => navigateCards("next")}
                 disabled={currentIndex === flashCards.length - 1}
               >
@@ -432,7 +431,7 @@ const PublicFlashCards = () => {
           </GestureDetector>
 
           <Text style={styles.instruction}>
-            Enter Space-Bar or Tap card to flip • Swipe or use arrow keys to navigate
+            Tap card to flip • Swipe to navigate
           </Text>
 
           <View style={styles.progressBar}>
@@ -451,10 +450,4 @@ const PublicFlashCards = () => {
   );
 };
 
-export default function FlashCardsWithErrorBoundary() {
-  return (
-    <FlashCardsErrorBoundary>
-      <PublicFlashCards />
-    </FlashCardsErrorBoundary>
-  );
-}
+export default FlashCardDetail;

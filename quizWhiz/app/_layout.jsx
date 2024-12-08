@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   ShieldCheck,
-} from "lucide-react";
+  Library
+} from "lucide-react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 
 export default function Layout() {
@@ -86,10 +87,32 @@ export default function Layout() {
                 router.push("/admin");
               }}
             >
-              <ShieldCheck size={24} color="#71717a" />
+              <ShieldCheck size={24} stroke="#71717a" />
               <Text style={styles.menuText}>Admin</Text>
             </Pressable>
           )}
+          {id === 11 && (
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuVisible(false);
+                router.push("/manageAllLessons");
+              }}
+            >
+              <ShieldCheck size={24} stroke="#71717a" />
+              <Text style={styles.menuText}>Manage All Lessons</Text>
+            </Pressable>
+          )}
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => {
+              setMenuVisible(false);
+              router.push("/manageYourLessons");
+            }}
+          >
+            <Library size={24} stroke="#71717a" />
+            <Text style={styles.menuText}>Manage Lessons</Text>
+          </Pressable>
           <Pressable
             style={styles.menuItem}
             onPress={() => {
@@ -97,7 +120,7 @@ export default function Layout() {
               router.push("/settings");
             }}
           >
-            <Settings size={24} color="#71717a" />
+            <Settings size={24} stroke="#71717a" />
             <Text style={styles.menuText}>Settings</Text>
           </Pressable>
 
@@ -108,7 +131,7 @@ export default function Layout() {
               handleLogout();
             }}
           >
-            <LogOut size={24} color="#71717a" />
+            <LogOut size={24} stroke="#71717a" />
             <Text style={styles.menuText}>Logout</Text>
           </Pressable>
         </View>
@@ -133,7 +156,7 @@ export default function Layout() {
             >
               <Home
                 size={24}
-                color={pathname === "/homepage" ? "#6b21a8" : "#71717a"}
+                stroke={pathname === "/homepage" ? "#6b21a8" : "#71717a"}
               />
             </Pressable>
   
@@ -143,7 +166,7 @@ export default function Layout() {
             >
               <Book
                 size={24}
-                color={pathname === "/flashcards" ? "#6b21a8" : "#71717a"}
+                stroke={pathname === "/flashcards" ? "#6b21a8" : "#71717a"}
               />
             </Pressable>
   
@@ -153,7 +176,7 @@ export default function Layout() {
             >
               <BookOpenText
                 size={24}
-                color={pathname === "/lessons" ? "#6b21a8" : "#71717a"}
+                stroke={pathname === "/lessons" ? "#6b21a8" : "#71717a"}
               />
             </Pressable>
           </View>
@@ -164,7 +187,7 @@ export default function Layout() {
             style={styles.menuButton}
             onPress={() => setMenuVisible(true)}
           >
-            <MoreVertical size={24} color="white" />
+            <MoreVertical size={24} stroke="white" />
           </Pressable>
         </View>
   

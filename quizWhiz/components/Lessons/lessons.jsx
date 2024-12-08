@@ -8,20 +8,21 @@ import {
   Dimensions,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import FlashCardDetails from "../FlashcardDetails/FlashcardDetails";
 import CreateLessonModal from "../CreateLessonModal/createLessonModal";
 
 const { width } = Dimensions.get("window");
 
 const PublicLessons = () => {
+  const router = useRouter();
   const [publicLessons, setPublicLessons] = useState([]);
   const [personalLessons, setPersonalLessons] = useState([]);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
-  const [flashcards, setFlashcards] = useState([]);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,10 +32,16 @@ const PublicLessons = () => {
 
   useFocusEffect(
     useCallback(() => {
+      setSelectedLessonId(null);
       fetchPublicLessons();
       fetchPersonalLessons();
     }, [])
   );
+
+  const handleCloseFlashCardsDetails = useCallback(() => {
+    setSelectedLessonId(null);
+    router.replace("/lessons");
+  }, [router]);
 
   const fetchUserData = async (userId) => {
     if (userCache[userId]) return userCache[userId];
@@ -179,8 +186,12 @@ const PublicLessons = () => {
         );
       }
 
+      const privateLeasons = response.data.filter(
+        (lesson) => !lesson.is_public
+      );
+
       const lessonsWithUsers = await Promise.all(
-        response.data.map(async (lesson) => {
+        privateLeasons.map(async (lesson) => {
           const lessonUserData = await fetchUserData(lesson.created_by);
           return {
             ...lesson,
@@ -202,26 +213,9 @@ const PublicLessons = () => {
   };
 
   const handleLessonPress = async (lessonId) => {
-    try {
-      setSelectedLessonId(lessonId);
-      const token = await AsyncStorage.getItem("accessToken");
-
-      if (!token) {
-        throw new Error("No access token available");
-      }
-
-      const response = await axios.get(
-        `${baseURL}/lessons/${lessonId}/flashcards`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setFlashcards(response.data);
-    } catch (err) {
-      console.error("Error fetching flashcards:", err);
-      setError("Failed to fetch flashcards");
-    }
+    if (!lessonId) return;
+    setSelectedLessonId(lessonId);
+    router.push(`/lessons/#${lessonId}`);
   };
 
   const getFormattedDate = (dateString) => {
@@ -232,6 +226,16 @@ const PublicLessons = () => {
       day: "numeric",
     });
   };
+
+  if (selectedLessonId) {
+    return (
+      <FlashCardDetails
+        lessonId={selectedLessonId}
+        onBack={handleCloseFlashCardsDetails}
+        previousRoute={"lessons"}
+      />
+    );
+  }
 
   const renderLessonCard = (item) => (
     <TouchableOpacity
@@ -404,6 +408,7 @@ const PublicLessons = () => {
           await Promise.all([fetchPublicLessons(), fetchPersonalLessons()]);
           setCreateModalVisible(false);
         }}
+        Action={"Create"}
       />
     </View>
   );
