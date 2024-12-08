@@ -125,6 +125,7 @@ const HomeScreen = () => {
       key={`study-set-${set.id}`}
       style={styles.studySetCard}
       activeOpacity={0.7}
+      onPress={() => handleLessonPress(set.id)}
     >
       <Text style={styles.studySetTitle}>{set.title}</Text>
       <Text style={styles.cardCount}>{set.description}</Text>

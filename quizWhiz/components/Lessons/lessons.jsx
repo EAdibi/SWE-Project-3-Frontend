@@ -32,6 +32,7 @@ const PublicLessons = () => {
 
   useFocusEffect(
     useCallback(() => {
+      setSelectedLessonId(null);
       fetchPublicLessons();
       fetchPersonalLessons();
     }, [])
