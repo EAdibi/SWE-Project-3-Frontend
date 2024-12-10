@@ -10,6 +10,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
@@ -198,6 +199,7 @@ const ManageAllLessons = () => {
         end={{ x: 1, y: 1 }}
         style={styles.container}
       >
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Manage All Lessons</Text>
         </View>
@@ -247,6 +249,7 @@ const ManageAllLessons = () => {
           Action="Update"
           initialValues={selectedLesson}
         />
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -396,6 +399,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "500",
+  },
+  scrollViewContent: {
+    padding: 16,
   },
 });
 

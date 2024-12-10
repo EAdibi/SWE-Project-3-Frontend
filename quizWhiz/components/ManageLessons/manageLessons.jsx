@@ -84,6 +84,7 @@ const ManageYourLessons = () => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -231,7 +232,7 @@ const ManageYourLessons = () => {
             </Text>
             <TouchableOpacity
               style={styles.createEmptyButton}
-              onPress={() => setUpdateModalVisible(true)}
+              onPress={() => setCreateModalVisible(true)}
             >
               <Text style={styles.createEmptyButtonText}>
                 Create Your First Lesson
@@ -272,6 +273,18 @@ const ManageYourLessons = () => {
           Action="Update"
           initialValues={selectedLesson}
         />
+
+        <CreateLessonModal
+          visible={createModalVisible}
+          onClose={() => setCreateModalVisible(false)}
+          onLessonCreated={(newLesson) => {
+            setLessons([...lessons, newLesson]);
+            setCreateModalVisible(false);
+          }}
+          Action="Create"
+          initialValues={null}
+        />
+        
       </LinearGradient>
     </SafeAreaView>
   );

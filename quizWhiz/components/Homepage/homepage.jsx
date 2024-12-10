@@ -30,6 +30,7 @@ const HomeScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
+      setSelectedLessonId(null);  
       fetchPublicLessons();
       fetchTopCategories();
     }, [])

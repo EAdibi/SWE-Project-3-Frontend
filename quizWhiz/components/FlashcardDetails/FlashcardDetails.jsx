@@ -15,6 +15,8 @@ import {
   GestureDetector,
   Gesture,
 } from "react-native-gesture-handler";
+import AddFlashcardModal from "../AddFlashcardModal/addFlashcardModal";
+import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 
 const MAX_RETRIES = 3;
@@ -39,6 +41,7 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
   const styles = StyleSheet.create({
     mainContainer: {
@@ -48,7 +51,9 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
     },
     header: {
       width: "100%",
-      flexDirection: "column",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: 20,
       paddingTop: 20,
       paddingBottom: 10,
@@ -193,6 +198,18 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
       backgroundColor: "#4CAF50",
       borderRadius: 4,
     },
+    createButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      padding: 10,
+      borderRadius: 20,
+    },
+    createButtonText: {
+      color: "#fff",
+      marginLeft: 5,
+      fontWeight: "600",
+    },
     errorContainer: {
       flex: 1,
       alignItems: "center",
@@ -216,13 +233,40 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
       fontSize: 16,
       textAlign: "center",
     },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    },
+    noFlashcardsText: {
+      fontSize: 20,
+      color: "#fff",
+      textAlign: "center",
+      marginTop: 16,
+      marginBottom: 24,
+      fontWeight: "600",
+    },
+    createEmptyButton: {
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: "rgba(255, 255, 255, 0.3)",
+    },
+    createEmptyButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
   });
 
   const handleGoBack = useCallback(() => {
     if (onBack) {
       onBack();
     }
-    if(previousRoute == "lessons"){
+    if (previousRoute == "lessons") {
       router.push("/lessons");
     }
   }, [onBack, router]);
@@ -255,6 +299,10 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
       setError(error.message || "Failed to fetch flashcards");
       setIsLoading(false);
     }
+  };
+
+  const handleAddNewFlashcard = (newFlashcard) => {
+    setFlashCards([...flashCards, newFlashcard]);
   };
 
   useEffect(() => {
@@ -335,7 +383,20 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
             >
               <ArrowLeft size={24} color="#fff" />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => setCreateModalVisible(true)}
+            >
+              <Ionicons name="add-circle" size={24} color="#fff" />
+              <Text style={styles.createButtonText}>Add FlashCard</Text>
+            </TouchableOpacity>
           </View>
+          <AddFlashcardModal
+            isVisible={isCreateModalVisible}
+            onClose={() => setCreateModalVisible(false)}
+            onSubmit={handleAddNewFlashcard}
+            lessonId={lessonId}
+          />
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>
               {error || "No flashcards available for this lesson"}
@@ -377,7 +438,20 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
           >
             <ArrowLeft size={24} color="#fff" />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => setCreateModalVisible(true)}
+          >
+            <Ionicons name="add-circle" size={24} color="#fff" />
+            <Text style={styles.createButtonText}>Add FlashCard</Text>
+          </TouchableOpacity>
         </View>
+        <AddFlashcardModal
+          isVisible={isCreateModalVisible}
+          onClose={() => setCreateModalVisible(false)}
+          onSubmit={handleAddNewFlashcard}
+          lessonId={lessonId}
+        />
 
         <View style={styles.container}>
           <View style={styles.headerInfo}>
