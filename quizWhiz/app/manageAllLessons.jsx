@@ -3,7 +3,7 @@ import { View } from "react-native";
 
 const Page = () => {
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <ManageAllLessons />
     </View>
   );

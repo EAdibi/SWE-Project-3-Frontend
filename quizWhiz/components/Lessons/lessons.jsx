@@ -23,6 +23,7 @@ const PublicLessons = () => {
   const [publicLessons, setPublicLessons] = useState([]);
   const [personalLessons, setPersonalLessons] = useState([]);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
+  // const [lessonOwner, setLessonOwner] = useState(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
