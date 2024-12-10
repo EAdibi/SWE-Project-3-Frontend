@@ -30,6 +30,24 @@ const Card = memo(({ isFlipped, currentCard, onFlip, styles }) => (
   </TouchableOpacity>
 ));
 
+
+const EmptyState = ({ onCreateNew, styles }) => (
+  <View style={styles.emptyStateContainer}>
+    <File size={48} color="#fff" />
+    <Text style={styles.noFlashcardsText}>
+      No flashcards available for this lesson
+    </Text>
+    <TouchableOpacity
+      style={styles.createEmptyButton}
+      onPress={onCreateNew}
+    >
+      <Text style={styles.createEmptyButtonText}>
+        Create Your First Flashcard
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
+
 const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
   const router = useRouter();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -39,6 +57,7 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [isCreateModalVisible, setCreateModalVisible] = useState(false);
 
   const styles = StyleSheet.create({
     mainContainer: {
@@ -215,6 +234,33 @@ const FlashCardDetail = ({ lessonId, onBack, previousRoute }) => {
       color: "#ffffff",
       fontSize: 16,
       textAlign: "center",
+    },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+    },
+    noFlashcardsText: {
+      fontSize: 20,
+      color: '#fff',
+      textAlign: 'center',
+      marginTop: 16,
+      marginBottom: 24,
+      fontWeight: '600',
+    },
+    createEmptyButton: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.3)',
+    },
+    createEmptyButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
     },
   });
 

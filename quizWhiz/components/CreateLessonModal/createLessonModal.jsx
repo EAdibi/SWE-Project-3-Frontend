@@ -29,7 +29,6 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated, Action, initialV
     message: '',
   });
 
-  // Update form when initialValues changes
   useEffect(() => {
     if (initialValues && Action === 'Update') {
       setLessonForm({
@@ -39,7 +38,6 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated, Action, initialV
         is_public: initialValues.is_public || false
       });
     } else {
-      // Reset form when modal is used for creation
       setLessonForm({
         title: '',
         description: '',
@@ -59,7 +57,6 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated, Action, initialV
 
   const handleSubmit = async () => {
     try {
-      // Validate required fields
       if (!lessonForm.title || !lessonForm.description || !lessonForm.category) {
         showAlert('Error', 'Please fill in all required fields');
         return;
@@ -81,7 +78,6 @@ const CreateLessonModal = ({ visible, onClose, onLessonCreated, Action, initialV
           }
         );
       } else {
-        // Update existing lesson
         response = await axios.patch(
           `${BACKEND_URL}/lessons/update`,
           {
